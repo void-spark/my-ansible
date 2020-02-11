@@ -1,4 +1,6 @@
-# Invocation: ansible-playbook -i hosts create_vm.yml -e "vm_name=ubuntu-k8s-node2"
+# Invocation: ansible-playbook -i hosts create_vm.yml -e "vm_name=ubuntu-k8s-node1 vm_mem=16384 vm_cores=4 vm_hd=32 vm_mac=E6:EF:4E:DB:CA:29"
+# Invocation: ansible-playbook -i hosts create_vm.yml -e "vm_name=ubuntu-k8s-node2 vm_mem=16384 vm_cores=4 vm_hd=32 vm_mac=E6:EF:4E:DB:CA:30"
+# Invocation: ansible-playbook -i hosts create_vm.yml -e "vm_name=ubuntu-k8s-node3 vm_mem=16384 vm_cores=4 vm_hd=32 vm_mac=E6:EF:4E:DB:CA:31"
 
 - name: "Setup ubuntu VM {{ vm_name }}"
   hosts: pve
@@ -10,7 +12,7 @@
   tasks:
   - name: "Create local folders"
     file:
-      path: "/tmp/{{ item }}"
+      path: "/tmp/{{ vm_name }}/{{ item }}"
       state: directory
     with_items:
       - src
@@ -21,7 +23,7 @@
   - name: "Get kernel and initrd"
     get_url:
       url: "http://nl.archive.ubuntu.com/ubuntu/dists/bionic/main/installer-amd64/current/images/netboot/ubuntu-installer/amd64/{{ item }}"
-      dest: "/tmp/src/"
+      dest: "/tmp/{{ vm_name }}/src/"
     with_items:
       - linux
       - initrd.gz
@@ -29,8 +31,8 @@
 
   - name: "Copy kernel and initrd"
     copy:
-      src: "/tmp/src/{{ item }}"
-      dest: "/tmp/dst/{{ item }}"
+      src: "/tmp/{{ vm_name }}/src/{{ item }}"
+      dest: "/tmp/{{ vm_name }}/dst/{{ item }}"
       force: yes
     with_items:
       - linux
@@ -40,26 +42,26 @@
   - name: "Copy Ubuntu preseed file"
     template:
       src: "preseed.cfg.j2"
-      dest: "/tmp/build/preseed.cfg"
+      dest: "/tmp/{{ vm_name }}/build/preseed.cfg"
     delegate_to: localhost
 
   - name: "Copy ssh public key"
     copy:
       src: "/root/.ssh/id_rsa.pub"
-      dest: "/tmp/build/id_rsa.pub"
+      dest: "/tmp/{{ vm_name }}/build/id_rsa.pub"
       force: yes
     delegate_to: localhost
 
   - name: "Add to initrd.gz"
-    shell: "find . | cpio -H newc -o | gzip -9 >> /tmp/dst/initrd.gz"
+    shell: "find . | cpio -H newc -o | gzip -9 >> /tmp/{{ vm_name }}/dst/initrd.gz"
     args:
-      chdir: "/tmp/build"
+      chdir: "/tmp/{{ vm_name }}/build"
     delegate_to: localhost
 
   - name: "Copy kernel and initrd to ProxMox host"
     copy:
-      src: "/tmp/dst/{{ item }}"
-      dest: "/tmp/{{ item }}"
+      src: "/tmp/{{ vm_name }}/dst/{{ item }}"
+      dest: "/tmp/{{ vm_name }}.{{ item }}"
       force: yes
     with_items:
       - linux
@@ -67,12 +69,8 @@
 
   - name: "Cleanup local work folders"
     file:
-      path: "/tmp/{{ item }}"
+      path: "/tmp/{{ vm_name }}"
       state: absent
-    with_items:
-      - src
-      - build
-      - dst
     delegate_to: localhost
 
   - name: "Create {{ vm_name }}"
@@ -82,15 +80,14 @@
       api_password: "{{ pve_api_password }}"
       node: pve
       name: "{{ vm_name }}"
-      vmid: 9003
-      cores: 4
-      memory: 16384
-      balloon: 16384
-      scsi: '{"scsi0":"local-lvm:32,format=raw"}'
+      cores: "{{ vm_cores }}"
+      memory: "{{ vm_mem }}"
+      balloon: "{{ vm_mem }}"
+      scsi: '{"scsi0":"local-lvm:{{ vm_hd }},format=raw"}'
       scsihw: virtio-scsi-pci
-      net: '{"net0":"virtio=E6:EF:4E:DB:CA:30,bridge=vmbr0,firewall=1"}'
+      net: '{"net0":"virtio={{ vm_mac }},bridge=vmbr0,firewall=1"}'
       ostype: l26
-      args: '-kernel /tmp/linux -initrd /tmp/initrd.gz'
+      args: '-kernel /tmp/{{ vm_name }}.linux -initrd /tmp/{{ vm_name }}.initrd.gz'
       agent: yes
       onboot: yes
     delegate_to: localhost
@@ -142,7 +139,7 @@
 
   - name: "Delete kernel and initrd from ProxMox host"
     file:
-      path: "/tmp/{{ item }}"
+      path: "/tmp/{{ vm_name }}.{{ item }}"
       state: absent
     with_items:
       - linux

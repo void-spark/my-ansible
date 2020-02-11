@@ -1,9 +1,8 @@
-# Invocation: ansible-playbook -i hosts create_vm.yml -e "vm_name=ubuntu-k8s-node1 vm_mem=16384 vm_cores=4 vm_hd=32 vm_mac=E6:EF:4E:DB:CA:29"
-# Invocation: ansible-playbook -i hosts create_vm.yml -e "vm_name=ubuntu-k8s-node2 vm_mem=16384 vm_cores=4 vm_hd=32 vm_mac=E6:EF:4E:DB:CA:30"
-# Invocation: ansible-playbook -i hosts create_vm.yml -e "vm_name=ubuntu-k8s-node3 vm_mem=16384 vm_cores=4 vm_hd=32 vm_mac=E6:EF:4E:DB:CA:31"
+# Invocation: ansible-playbook -i hosts create_vm.yml 
 
-- name: "Setup ubuntu VM {{ vm_name }}"
-  hosts: pve
+- name: "Setup ubuntu VM {{ inventory_hostname_short }}"
+  hosts: vm_nodes
+  gather_facts: no
   vars:
     ansible_python_interpreter: /usr/bin/python3
   vars_files:
@@ -12,7 +11,7 @@
   tasks:
   - name: "Create local folders"
     file:
-      path: "/tmp/{{ vm_name }}/{{ item }}"
+      path: "/tmp/{{ inventory_hostname_short }}/{{ item }}"
       state: directory
     with_items:
       - src
@@ -23,7 +22,7 @@
   - name: "Get kernel and initrd"
     get_url:
       url: "http://nl.archive.ubuntu.com/ubuntu/dists/bionic/main/installer-amd64/current/images/netboot/ubuntu-installer/amd64/{{ item }}"
-      dest: "/tmp/{{ vm_name }}/src/"
+      dest: "/tmp/{{ inventory_hostname_short }}/src/"
     with_items:
       - linux
       - initrd.gz
@@ -31,8 +30,8 @@
 
   - name: "Copy kernel and initrd"
     copy:
-      src: "/tmp/{{ vm_name }}/src/{{ item }}"
-      dest: "/tmp/{{ vm_name }}/dst/{{ item }}"
+      src: "/tmp/{{ inventory_hostname_short }}/src/{{ item }}"
+      dest: "/tmp/{{ inventory_hostname_short }}/dst/{{ item }}"
       force: yes
     with_items:
       - linux
@@ -42,44 +41,46 @@
   - name: "Copy Ubuntu preseed file"
     template:
       src: "preseed.cfg.j2"
-      dest: "/tmp/{{ vm_name }}/build/preseed.cfg"
+      dest: "/tmp/{{ inventory_hostname_short }}/build/preseed.cfg"
     delegate_to: localhost
 
   - name: "Copy ssh public key"
     copy:
       src: "/root/.ssh/id_rsa.pub"
-      dest: "/tmp/{{ vm_name }}/build/id_rsa.pub"
+      dest: "/tmp/{{ inventory_hostname_short }}/build/id_rsa.pub"
       force: yes
     delegate_to: localhost
 
   - name: "Add to initrd.gz"
-    shell: "find . | cpio -H newc -o | gzip -9 >> /tmp/{{ vm_name }}/dst/initrd.gz"
+    shell: "find . | cpio -H newc -o | gzip -9 >> /tmp/{{ inventory_hostname_short }}/dst/initrd.gz"
     args:
-      chdir: "/tmp/{{ vm_name }}/build"
+      chdir: "/tmp/{{ inventory_hostname_short }}/build"
     delegate_to: localhost
 
   - name: "Copy kernel and initrd to ProxMox host"
     copy:
-      src: "/tmp/{{ vm_name }}/dst/{{ item }}"
-      dest: "/tmp/{{ vm_name }}.{{ item }}"
+      src: "/tmp/{{ inventory_hostname_short }}/dst/{{ item }}"
+      dest: "/tmp/{{ inventory_hostname_short }}.{{ item }}"
       force: yes
     with_items:
       - linux
       - initrd.gz
+    delegate_to: pve
 
   - name: "Cleanup local work folders"
     file:
-      path: "/tmp/{{ vm_name }}"
+      path: "/tmp/{{ inventory_hostname_short }}"
       state: absent
     delegate_to: localhost
 
-  - name: "Create {{ vm_name }}"
+  - name: "Create {{ inventory_hostname_short }}"
     proxmox_kvm:
       api_host: "{{ pve_api_host }}"
       api_user: "{{ pve_api_user }}"
       api_password: "{{ pve_api_password }}"
       node: pve
-      name: "{{ vm_name }}"
+      name: "{{ inventory_hostname_short }}"
+      vmid: "{{ vm_id }}"
       cores: "{{ vm_cores }}"
       memory: "{{ vm_mem }}"
       balloon: "{{ vm_mem }}"
@@ -87,7 +88,7 @@
       scsihw: virtio-scsi-pci
       net: '{"net0":"virtio={{ vm_mac }},bridge=vmbr0,firewall=1"}'
       ostype: l26
-      args: '-kernel /tmp/{{ vm_name }}.linux -initrd /tmp/{{ vm_name }}.initrd.gz'
+      args: '-kernel /tmp/{{ inventory_hostname_short }}.linux -initrd /tmp/{{ inventory_hostname_short }}.initrd.gz'
       agent: yes
       onboot: yes
     delegate_to: localhost
@@ -97,7 +98,7 @@
       api_host: "{{ pve_api_host }}"
       api_user: "{{ pve_api_user }}"
       api_password: "{{ pve_api_password }}"
-      name: "{{ vm_name }}"
+      name: "{{ inventory_hostname_short }}"
       state: current
     register: result
     until: result.msg.find("stopped") != -1
@@ -110,7 +111,7 @@
       api_host: "{{ pve_api_host }}"
       api_user: "{{ pve_api_user }}"
       api_password: "{{ pve_api_password }}"
-      name: "{{ vm_name }}"
+      name: "{{ inventory_hostname_short }}"
       state: 'started'
     delegate_to: localhost
 
@@ -119,7 +120,7 @@
       api_host: "{{ pve_api_host }}"
       api_user: "{{ pve_api_user }}"
       api_password: "{{ pve_api_password }}"
-      name: "{{ vm_name }}"
+      name: "{{ inventory_hostname_short }}"
       state: current
     register: result
     until: result.msg.find("stopped") != -1
@@ -132,24 +133,25 @@
       api_host: "{{ pve_api_host }}"
       api_user: "{{ pve_api_user }}"
       api_password: "{{ pve_api_password }}"
-      name: "{{ vm_name }}"
+      name: "{{ inventory_hostname_short }}"
       node: pve
       delete: 'args'
     delegate_to: localhost
 
   - name: "Delete kernel and initrd from ProxMox host"
     file:
-      path: "/tmp/{{ vm_name }}.{{ item }}"
+      path: "/tmp/{{ inventory_hostname_short }}.{{ item }}"
       state: absent
     with_items:
       - linux
       - initrd.gz
+    delegate_to: pve
 
   - name: "Start VM"
     proxmox_kvm:
       api_host: "{{ pve_api_host }}"
       api_user: "{{ pve_api_user }}"
       api_password: "{{ pve_api_password }}"
-      name: "{{ vm_name }}"
+      name: "{{ inventory_hostname_short }}"
       state: 'started'
     delegate_to: localhost

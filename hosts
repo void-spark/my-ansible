@@ -2,3 +2,8 @@ localhost   ansible_connection=local
 
 [proxmox]
 pve         ansible_connection=ssh      ansible_host=pve.fritz.box      ansible_user=root
+
+[vm_nodes]
+ubuntu-k8s-node1.fritz.box
+ubuntu-k8s-node2.fritz.box
+ubuntu-k8s-node3.fritz.box

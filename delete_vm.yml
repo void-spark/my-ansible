@@ -1,24 +1,29 @@
+# Invocation: ansible-playbook -i hosts delete_vm.yml
+
 - name: Delete old Proxmox VMs
-  hosts: localhost
+  hosts: vm_nodes
+  gather_facts: no
   vars:
     ansible_python_interpreter: /usr/bin/python3
   vars_files:
     - vars.yml
 
   tasks:
-  - name: "Stop {{ vm_name }}"
+  - name: "Stop {{ inventory_hostname_short }}"
     proxmox_kvm:
       api_host: "{{ pve_api_host }}"
       api_user: "{{ pve_api_user }}"
       api_password: "{{ pve_api_password }}"
-      name: "{{ vm_name }}"
+      name: "{{ inventory_hostname_short }}"
       force: yes
       state: stopped
+    delegate_to: localhost
 
-  - name: "Delete {{ vm_name }}"
+  - name: "Delete {{ inventory_hostname_short }}"
     proxmox_kvm:
       api_host: "{{ pve_api_host }}"
       api_user: "{{ pve_api_user }}"
       api_password: "{{ pve_api_password }}"
-      name: "{{ vm_name }}"
+      name: "{{ inventory_hostname_short }}"
       state: absent
+    delegate_to: localhost

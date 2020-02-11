@@ -1,0 +1,8 @@
+*.yml           text eol=lf
+*.j2    		text eol=lf
+*.sh    		text eol=lf
+Dockerfile		text eol=lf
+hosts    		text eol=lf
+.gitattributes  text eol=lf
+.gitignore		text eol=lf
+.gitmodules		text eol=lf

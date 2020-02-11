@@ -1,0 +1,4 @@
+localhost   ansible_connection=local
+
+[proxmox]
+pve         ansible_connection=ssh      ansible_host=pve.fritz.box      ansible_user=root

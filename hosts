@@ -4,6 +4,7 @@ localhost   ansible_connection=local
 pve         ansible_connection=ssh      ansible_host=pve.fritz.box      ansible_user=root
 
 [vm_nodes]
-ubuntu-k8s-node1.fritz.box vm_mem=16384 vm_cores=4 vm_hd=32 vm_mac=E6:EF:4E:DB:CA:29 vm_id=9001
-ubuntu-k8s-node2.fritz.box vm_mem=16384 vm_cores=4 vm_hd=32 vm_mac=E6:EF:4E:DB:CA:30 vm_id=9002
-ubuntu-k8s-node3.fritz.box vm_mem=16384 vm_cores=4 vm_hd=32 vm_mac=E6:EF:4E:DB:CA:31 vm_id=9003
+ubuntu-k8s-master.fritz.box vm_mem=16384 vm_cores=4 vm_hd=32 vm_mac=E6:EF:4E:DB:CA:28 vm_id=9000
+ubuntu-k8s-node1.fritz.box  vm_mem=16384 vm_cores=4 vm_hd=32 vm_mac=E6:EF:4E:DB:CA:29 vm_id=9001
+ubuntu-k8s-node2.fritz.box  vm_mem=16384 vm_cores=4 vm_hd=32 vm_mac=E6:EF:4E:DB:CA:30 vm_id=9002
+ubuntu-k8s-node3.fritz.box  vm_mem=16384 vm_cores=4 vm_hd=32 vm_mac=E6:EF:4E:DB:CA:31 vm_id=9003

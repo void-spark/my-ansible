@@ -3,8 +3,6 @@
 - name: Delete old Proxmox VMs
   hosts: vm_nodes
   gather_facts: no
-  vars:
-    ansible_python_interpreter: /usr/bin/python3
   vars_files:
     - vars.yml
 

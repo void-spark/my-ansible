@@ -50,6 +50,15 @@
       name: kubeadm
       selection: hold
 
+  - name: Remove swapfile from /etc/fstab
+    mount:
+      name: none
+      fstype: swap
+      state: absent
+  - name: Disable swap
+    command: swapoff -a
+    when: ansible_swaptotal_mb > 0
+
 - name: Setup k8s
   hosts: k8s_masters
 
@@ -62,3 +71,42 @@
     dpkg_selections:
       name: kubectl
       selection: hold
+
+- name: setup k8s master
+  hosts: k8s_masters
+
+  tasks:
+  - name: initialize the cluster
+    shell: kubeadm init --pod-network-cidr=10.244.0.0/16 >> cluster_initialized.txt
+    args:
+      chdir: $HOME
+      creates: cluster_initialized.txt
+
+  - name: create .kube directory
+    file:
+      path: $HOME/.kube
+      state: directory
+      mode: 0755
+
+  - name: copy admin.conf to user's kube config
+    copy:
+      src: /etc/kubernetes/admin.conf
+      dest: $HOME/.kube/config
+      remote_src: yes
+
+  - name: Download calico manifest
+    get_url:
+      url: https://docs.projectcalico.org/manifests/calico.yaml
+      dest: $HOME/calico.yaml
+
+  - name: Update cidr
+    replace:
+      path: $HOME/calico.yaml
+      regexp: '192.168.0.0/16'
+      replace: '10.244.0.0/16'
+
+  - name: install Pod network
+    shell: kubectl apply -f https://docs.projectcalico.org/manifests/calico.yaml >> pod_network_setup.txt
+    args:
+      chdir: $HOME
+      creates: pod_network_setup.txt

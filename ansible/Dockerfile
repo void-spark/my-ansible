@@ -11,6 +11,7 @@ RUN apt-get update \
     nano \
     python3 \
     python3-pip \
+    rsync \
     wget \
 && rm -rf /var/lib/apt/lists/* \
 && pip3 install proxmoxer \

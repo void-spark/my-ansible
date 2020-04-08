@@ -1,0 +1,128 @@
+# Invocation: ansible-playbook -i hosts.docker docker.yml
+
+- name: Setup docker
+  hosts: raspberrypi.fritz.box
+
+  tasks:
+  - name: Install Docker
+    apt:
+      name: docker.io
+      state: present
+      update_cache: true
+
+  - name: Install python
+    apt:
+      name: python3
+
+  - name: Install pip
+    apt:
+      name: python3-pip
+
+  - name: Install Docker Module for Python
+    pip:
+      name: docker
+
+  - name: "Create folder to keep Docker bind mounts at"
+    file:
+      path: "/var/docker/data"
+      state: directory
+
+  - name: "Create folder to keep Docker backups at"
+    file:
+      path: "/var/docker/backups"
+      state: directory
+
+  - name: Make local copy of latest backups
+    synchronize:
+      mode: pull
+      src: rsync://omv.fritz.box/docker/backups/pi/
+      dest: backups
+    delegate_to: localhost
+
+  - name: "Restore portainer backup"
+    unarchive:
+      src: "backups/portainer.tar.gz"
+      creates: "/var/docker/data/portainer"
+      dest: "/var/docker/data"
+
+  - name: Pull Portainer image
+    docker_image:
+      name: portainer/portainer
+      source: pull
+
+  - name: Create Portainer container
+    docker_container:
+      name: portainer
+      image: portainer/portainer
+      detach: yes
+      restart_policy: unless-stopped
+      state: started
+      volumes:
+        - /var/run/docker.sock:/var/run/docker.sock
+        - /var/docker/data/portainer:/data
+      ports:
+        - "9100:9000"
+      comparisons:
+        init: ignore
+        volumes: ignore
+
+  - name: Creates Portainer maintenance cron task
+    cron:
+      name: Portainer maintenance
+      minute: "20"
+      hour: "4"
+      user: root
+      job: >
+        docker pull portainer/portainer ;
+        docker stop portainer ;
+        docker rm portainer ;
+        /bin/tar -czf /var/docker/backups/portainer.tar.gz -C /var/docker/data/ portainer/ ;
+        /usr/bin/rsync -av --inplace /var/docker/backups/ rsync://omv.fritz.box/docker/backups/pi/ ;
+        docker run -d
+        -p 0.0.0.0:9100:9000
+        --name portainer
+        --restart unless-stopped
+        -v /var/run/docker.sock:/var/run/docker.sock:rw
+        -v /var/docker/data/portainer:/data:rw
+        portainer/portainer
+      cron_file: portainer-maint
+
+  - name: Pull Mosquitto image
+    docker_image:
+      name: eclipse-mosquitto
+      source: pull
+
+  - name: Create Mosquitto container
+    docker_container:
+      name: mosquitto
+      image: eclipse-mosquitto
+      detach: yes
+      interactive: yes
+      tty: yes
+      restart_policy: unless-stopped
+      state: started
+      volumes:
+        - mosquitto_data:/mosquitto/data
+        - mosquitto_log:/mosquitto/log
+      ports:
+        - "1883:1883"
+      comparisons:
+        init: ignore
+
+  - name: Creates Mosquitto maintenance cron task
+    cron:
+      name: Mosquitto maintenance
+      minute: "40"
+      hour: "4"
+      user: root
+      job: >
+        docker pull eclipse-mosquitto ;
+        docker stop mosquitto ;
+        docker rm mosquitto ;
+        docker run --name mosquitto -dit
+        -v mosquitto_data:/mosquitto/data:rw
+        -v mosquitto_log:/mosquitto/log:rw
+        --restart unless-stopped
+        -p 0.0.0.0:1883:1883
+        eclipse-mosquitto
+      cron_file: mosquitto-maint

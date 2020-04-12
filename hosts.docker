@@ -4,8 +4,7 @@ localhost   ansible_connection=local
 pve         ansible_connection=ssh      ansible_host=pve.fritz.box      ansible_user=root
 
 [vm_nodes]
-#raspberrypi.fritz.box vm_mem=6144 vm_cores=4 vm_hd=32 vm_mac=E6:EF:4E:DB:CB:28 vm_id=9020
-raspberrypi.fritz.box ansible_host=192.168.178.47
+raspberrypi.fritz.box vm_mem=6144 vm_cores=4 vm_hd=32 vm_mac=E6:EF:4E:DB:CB:28 vm_id=9020
 
 [all:vars]
 ansible_python_interpreter=/usr/bin/python3

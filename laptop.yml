@@ -1,0 +1,36 @@
+# Invocation: ansible-playbook -i hosts.docker laptop.yml
+- name: Prepare laptop
+  hosts: raspberrypi.fritz.box
+
+  tasks:
+  - name: Install smartmontools
+    apt:
+      name: smartmontools
+      update_cache: true
+
+  - name: Enable fs trimming
+    systemd:
+      name: fstrim.timer
+      enabled: yes
+      state: started
+
+  - name: Mount up device by UUID
+    mount:
+      path: /mnt/data
+      src: UUID=479b6f24-cf70-48c2-bab7-735026032a45
+      fstype: ext4
+      opts: errors=remount-ro
+      passno: '2'
+      state: present
+
+  - name: Install desktop
+    apt:
+      name: xfce4
+
+  - name: Enable remote desktop
+    apt:
+      name: xrdp
+
+  - name: Enable browsing network shares
+    apt:
+      name: gvfs-backends

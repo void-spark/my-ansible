@@ -1,0 +1,12 @@
+---
+version: '3'
+services:
+  nodered:
+    image: portainer/portainer
+    container_name: portainer
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /var/docker/data/portainer:/data
+    ports:
+      - "9100:9000"
+    restart: unless-stopped

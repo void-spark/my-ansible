@@ -10,6 +10,12 @@
       state: present
       update_cache: true
 
+  - name: Install Docker Compose
+    get_url:
+      url: "https://github.com/docker/compose/releases/download/1.25.5/docker-compose-Linux-x86_64"
+      dest: "/usr/local/bin/docker-compose"
+      mode: 0755
+
   - name: Install python
     apt:
       name: python3
@@ -22,9 +28,18 @@
     pip:
       name: docker
 
+  - name: Install Docker Compose Module for Python
+    pip:
+      name: docker-compose
+
   - name: "Create folder to keep Docker bind mounts at"
     file:
       path: "/var/docker/data"
+      state: directory
+
+  - name: "Create folder to keep Docker compose files at"
+    file:
+      path: "/var/docker/compose"
       state: directory
 
   - name: "Create folder to keep Docker backups at"
@@ -35,7 +50,7 @@
   - name: Make local copy of latest backups
     synchronize:
       mode: pull
-      src: rsync://omv.fritz.box/docker/backups/pi/
+      src: rsync://raspberrypi.fritz.box/docker/backups/pi/
       dest: backups
     delegate_to: localhost
 
@@ -45,28 +60,21 @@
       creates: "/var/docker/data/portainer"
       dest: "/var/docker/data"
 
+  - name: "Copy Portainer compose project"
+    copy:
+      src: portainer
+      dest: /var/docker/compose
+
   - name: Pull Portainer image
     docker_image:
       name: portainer/portainer
       source: pull
 
-  - name: Create Portainer container
-    docker_container:
-      name: portainer
-      image: portainer/portainer
-      detach: yes
-      restart_policy: unless-stopped
-      state: started
-      volumes:
-        - /var/run/docker.sock:/var/run/docker.sock
-        - /var/docker/data/portainer:/data
-      ports:
-        - "9100:9000"
-      comparisons:
-        init: ignore
-        volumes: ignore
+  - name: "Create and start Portainer service"
+    docker_compose:
+      project_src: /var/docker/compose/portainer
 
-  - name: Creates Portainer maintenance cron task
+  - name: Create Portainer maintenance cron task
     cron:
       name: Portainer maintenance
       minute: "20"
@@ -74,55 +82,112 @@
       user: root
       job: >
         docker pull portainer/portainer ;
-        docker stop portainer ;
-        docker rm portainer ;
-        /bin/tar -czf /var/docker/backups/portainer.tar.gz -C /var/docker/data/ portainer/ ;
-        /usr/bin/rsync -av --inplace /var/docker/backups/ rsync://omv.fritz.box/docker/backups/pi/ ;
-        docker run -d
-        -p 0.0.0.0:9100:9000
-        --name portainer
-        --restart unless-stopped
-        -v /var/run/docker.sock:/var/run/docker.sock:rw
-        -v /var/docker/data/portainer:/data:rw
-        portainer/portainer
+        pushd /var/docker/compose/portainer ;
+        /usr/local/bin/docker-compose down ;
+        tar -czf /var/docker/backups/portainer.tar.gz -C /var/docker/data/ portainer/ ;
+        rsync -av --inplace /var/docker/backups/ rsync://raspberrypi.fritz.box/docker/backups/pi/ ;
+        /usr/local/bin/docker-compose up -d
       cron_file: portainer-maint
 
-  - name: Pull Mosquitto image
+  - name: "Copy Mosquitto compose project"
+    copy:
+      src: mosquitto
+      dest: /var/docker/compose
+
+  - name: "Pull Mosquitto image"
     docker_image:
       name: eclipse-mosquitto
       source: pull
 
-  - name: Create Mosquitto container
-    docker_container:
-      name: mosquitto
-      image: eclipse-mosquitto
-      detach: yes
-      interactive: yes
-      tty: yes
-      restart_policy: unless-stopped
-      state: started
-      volumes:
-        - mosquitto_data:/mosquitto/data
-        - mosquitto_log:/mosquitto/log
-      ports:
-        - "1883:1883"
-      comparisons:
-        init: ignore
+  - name: "Create and start Mosquitto service"
+    docker_compose:
+      project_src: /var/docker/compose/mosquitto
 
-  - name: Creates Mosquitto maintenance cron task
+  - name: Create Mosquitto maintenance cron task
     cron:
       name: Mosquitto maintenance
-      minute: "40"
+      minute: "30"
       hour: "4"
       user: root
       job: >
         docker pull eclipse-mosquitto ;
-        docker stop mosquitto ;
-        docker rm mosquitto ;
-        docker run --name mosquitto -dit
-        -v mosquitto_data:/mosquitto/data:rw
-        -v mosquitto_log:/mosquitto/log:rw
-        --restart unless-stopped
-        -p 0.0.0.0:1883:1883
-        eclipse-mosquitto
+        pushd /var/docker/compose/mosquitto ;
+        /usr/local/bin/docker-compose down ;
+        /usr/local/bin/docker-compose up -d
       cron_file: mosquitto-maint
+
+  - name: "Restore Let's Encrypt backup"
+    unarchive:
+      src: "backups/letsencrypt.tar.gz"
+      creates: "/var/docker/data/letsencrypt"
+      dest: "/var/docker/data"
+
+  - name: "Copy Let's Encrypt compose project"
+    copy:
+      src: letsencrypt
+      dest: /var/docker/compose
+
+  - name: "Pull Let's Encrypt image"
+    docker_image:
+      name: linuxserver/letsencrypt
+      source: pull
+
+  - name: "Create and start Let's Encrypt service"
+    docker_compose:
+      project_src: /var/docker/compose/letsencrypt
+
+  - name: "Create Let's Encrypt maintenance cron task"
+    cron:
+      name: "Let's Encrypt maintenance"
+      minute: "40"
+      hour: "4"
+      user: root
+      job: >
+        docker pull linuxserver/letsencrypt ;
+        pushd /var/docker/compose/letsencrypt ;
+        /usr/local/bin/docker-compose down ;
+        tar -czf /var/docker/backups/letsencrypt.tar.gz -C /var/docker/data/ letsencrypt/ ;
+        rsync -av --inplace /var/docker/backups/ rsync://raspberrypi.fritz.box/docker/backups/pi/ ;
+        /usr/local/bin/docker-compose up -d
+      cron_file: letsencrypt-maint
+
+  - name: "Restore The Lounge backup"
+    unarchive:
+      src: "backups/thelounge.tar.gz"
+      creates: "/var/docker/data/thelounge"
+      dest: "/var/docker/data"
+
+  - name: "Copy The Lounge compose project"
+    copy:
+      src: thelounge
+      dest: /var/docker/compose
+
+  - name: "Pull The Lounge image"
+    docker_image:
+      name: thelounge/thelounge
+      source: pull
+
+  - name: "Create and start The Lounge service"
+    docker_compose:
+      project_src: /var/docker/compose/thelounge
+
+  - name: "Restore Node-RED backup"
+    unarchive:
+      src: "backups/nodered.tar.gz"
+      creates: "/var/docker/data/nodered"
+      dest: "/var/docker/data"
+
+  - name: "Copy Node-RED compose project"
+    copy:
+      src: nodered
+      dest: /var/docker/compose
+
+  - name: "Pull Node-RED image"
+    docker_image:
+      name: nodered/node-red
+      source: pull
+
+  - name: "Create and start Node-RED service"
+    docker_compose:
+      build: yes
+      project_src: /var/docker/compose/nodered

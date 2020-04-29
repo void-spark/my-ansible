@@ -1,0 +1,13 @@
+---
+version: '3'
+services:
+  nodered:
+    build: .
+    container_name: nodered
+    environment:
+      - TZ=Europe/Amsterdam
+    volumes:
+      - /var/docker/data/nodered:/data
+    ports:
+      - 1880:1880
+    restart: unless-stopped

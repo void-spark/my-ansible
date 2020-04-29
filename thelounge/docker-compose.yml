@@ -1,0 +1,11 @@
+---
+version: "2.1"
+services:
+  thelounge:
+    image: thelounge/thelounge
+    container_name: thelounge
+    volumes:
+      - /var/docker/data/thelounge:/var/opt/thelounge
+    ports:
+      - 9000:9000
+    restart: unless-stopped

@@ -82,7 +82,7 @@
       cores: "{{ vm_cores }}"
       memory: "{{ vm_mem }}"
       balloon: "{{ vm_mem }}"
-      scsi: '{"scsi0":"local-lvm:{{ vm_hd }},format=raw"}'
+      scsi: '{"scsi0":"{{ vm_disk }}:{{ vm_hd }},format=raw,discard=on"}'
       scsihw: virtio-scsi-pci
       net: '{"net0":"virtio={{ vm_mac }},bridge=vmbr0,firewall=1"}'
       ostype: l26

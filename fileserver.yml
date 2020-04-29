@@ -1,0 +1,58 @@
+# Invocation: ansible-playbook -i hosts.docker fileserver.yml
+- name: Setup file server
+  hosts: raspberrypi.fritz.box
+
+  tasks:
+  - name: "Create Phone backups folder"
+    file:
+      path: "/mnt/data/PhoneStuff"
+      owner: nobody
+      group: users
+      mode: 0775
+      state: directory
+
+  - name: "Create docker backups folder"
+    file:
+      path: "/mnt/data/docker"
+      owner: nobody
+      group: users
+      mode: 0775
+      state: directory
+
+  - name: Create samba configuration folder
+    file:
+      path: "/etc/samba"
+      owner: root
+      group: root
+      mode: 0755
+      state: directory
+
+  - name: Copy samba configuration file
+    copy:
+      src: smb.conf
+      dest: /etc/samba/smb.conf
+      owner: root
+      group: root
+      mode: 0644
+
+  - name: Install Samba server
+    apt:
+      name: samba
+
+  - name: Copy rsyncd configuration file
+    copy:
+      src: rsyncd.conf
+      dest: /etc/rsyncd.conf
+      owner: root
+      group: root
+      mode: 0644
+
+  - name: Install rsync
+    apt:
+      name: rsync
+
+  - name: Enable and start rsyncd
+    systemd:
+      name: rsync
+      enabled: yes
+      state: started

@@ -1,0 +1,43 @@
+# Install docker/docker compose, and create some useful folders
+- name: Install Docker
+  apt:
+    name: docker.io
+    state: present
+    update_cache: true
+
+- name: Install Docker Compose
+  get_url:
+    url: "https://github.com/docker/compose/releases/download/1.25.5/docker-compose-Linux-x86_64"
+    dest: "/usr/local/bin/docker-compose"
+    mode: 0755
+
+- name: Install python
+  apt:
+    name: python3
+
+- name: Install pip
+  apt:
+    name: python3-pip
+
+- name: Install Docker Module for Python
+  pip:
+    name: docker
+
+- name: Install Docker Compose Module for Python
+  pip:
+    name: docker-compose
+
+- name: "Create folder to keep Docker bind mounts at"
+  file:
+    path: "/var/docker/data"
+    state: directory
+
+- name: "Create folder to keep Docker compose files at"
+  file:
+    path: "/var/docker/compose"
+    state: directory
+
+- name: "Create folder to keep Docker backups at"
+  file:
+    path: "/var/docker/backups"
+    state: directory

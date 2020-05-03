@@ -1,0 +1,14 @@
+- name: Add curl for tribler API calls
+  apt:
+    name: curl
+
+- name: "Copy Tribler status scripts"
+  copy:
+    src: "{{ item }}"
+    dest: /root
+    owner: root
+    group: root
+    mode: 0755
+  with_items:
+    - status.sh
+    - tribler-stats.py

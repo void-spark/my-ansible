@@ -4,6 +4,7 @@
     src: rsync://raspberrypi.fritz.box/docker/backups/pi/thelounge.tar.gz
     dest: backups
     archive: false
+    checksum: true
   delegate_to: localhost
 
 - name: "Restore The Lounge backup"

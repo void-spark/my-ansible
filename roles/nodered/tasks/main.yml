@@ -1,0 +1,29 @@
+- name: Make local copy of latest Node-RED backup
+  synchronize:
+    mode: pull
+    src: rsync://raspberrypi.fritz.box/docker/backups/pi/nodered.tar.gz
+    dest: backups
+    archive: false
+    checksum: true
+  delegate_to: localhost
+
+- name: "Restore Node-RED backup"
+  unarchive:
+    src: "backups/nodered.tar.gz"
+    creates: "/var/docker/data/nodered"
+    dest: "/var/docker/data"
+
+- name: "Copy Node-RED compose project"
+  copy:
+    src: nodered
+    dest: /var/docker/compose
+
+- name: "Pull Node-RED image"
+  docker_image:
+    name: nodered/node-red
+    source: pull
+
+- name: "Create and start Node-RED service"
+  docker_compose:
+    build: yes
+    project_src: /var/docker/compose/nodered

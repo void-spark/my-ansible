@@ -1,7 +1,17 @@
 # Invocation: ansible-playbook -i hosts.docker laptop.yml
 - name: Build laptop server
   hosts: raspberrypi.fritz.box
+  vars_files:
+    - vars.yml
+  vars:
+    rsync_backups: "rsync://raspberrypi.fritz.box/docker/backups/pi"
   roles:
     - laptop
     - fileserver
     - tribler
+    - docker_base
+    - portainer
+    - mosquitto
+    - letsencrypt
+    - thelounge
+    - nodered

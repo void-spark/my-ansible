@@ -1,0 +1,27 @@
+- name: "Make local copy of latest The Lounge backup"
+  synchronize:
+    mode: pull
+    src: rsync://raspberrypi.fritz.box/docker/backups/pi/thelounge.tar.gz
+    dest: backups
+    archive: false
+  delegate_to: localhost
+
+- name: "Restore The Lounge backup"
+  unarchive:
+    src: "backups/thelounge.tar.gz"
+    creates: "/var/docker/data/thelounge"
+    dest: "/var/docker/data"
+
+- name: "Copy The Lounge compose project"
+  copy:
+    src: thelounge
+    dest: /var/docker/compose
+
+- name: "Pull The Lounge image"
+  docker_image:
+    name: thelounge/thelounge
+    source: pull
+
+- name: "Create and start The Lounge service"
+  docker_compose:
+    project_src: /var/docker/compose/thelounge

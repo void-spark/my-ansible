@@ -1,7 +1,7 @@
 - name: Make local copy of latest portainer backup
   synchronize:
     mode: pull
-    src: rsync://raspberrypi.fritz.box/docker/backups/pi/portainer.tar.gz
+    src: "{{ rsync_backups }}/portainer.tar.gz"
     dest: backups
     archive: false
     checksum: true
@@ -38,6 +38,6 @@
       pushd /var/docker/compose/portainer ;
       /usr/local/bin/docker-compose down ;
       tar -czf /var/docker/backups/portainer.tar.gz -C /var/docker/data/ portainer/ ;
-      rsync -av --inplace /var/docker/backups/ rsync://raspberrypi.fritz.box/docker/backups/pi/ ;
+      rsync -av --inplace /var/docker/backups/ "{{ rsync_backups }}/" ;
       /usr/local/bin/docker-compose up -d
     cron_file: portainer-maint

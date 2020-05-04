@@ -1,7 +1,7 @@
 - name: "Make local copy of latest Let's Encrypt backup"
   synchronize:
     mode: pull
-    src: rsync://raspberrypi.fritz.box/docker/backups/pi/letsencrypt.tar.gz
+    src: "{{ rsync_backups }}/letsencrypt.tar.gz"
     dest: backups
     archive: false
     checksum: true
@@ -38,6 +38,6 @@
       pushd /var/docker/compose/letsencrypt ;
       /usr/local/bin/docker-compose down ;
       tar -czf /var/docker/backups/letsencrypt.tar.gz -C /var/docker/data/ letsencrypt/ ;
-      rsync -av --inplace /var/docker/backups/ rsync://raspberrypi.fritz.box/docker/backups/pi/ ;
+      rsync -av --inplace /var/docker/backups/ "{{ rsync_backups }}/" ;
       /usr/local/bin/docker-compose up -d
     cron_file: letsencrypt-maint

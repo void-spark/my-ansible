@@ -1,7 +1,8 @@
 # Invocation: ansible-playbook -i hosts.docker docker.yml
 - name: Setup docker
   hosts: raspberrypi.fritz.box
-
+  vars:
+    rsync_backups: "rsync://raspberrypi.fritz.box/docker/backups/pi"
   roles:
     - docker_base
     - portainer

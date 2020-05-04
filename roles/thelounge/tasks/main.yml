@@ -1,7 +1,7 @@
 - name: "Make local copy of latest The Lounge backup"
   synchronize:
     mode: pull
-    src: rsync://raspberrypi.fritz.box/docker/backups/pi/thelounge.tar.gz
+    src: "{{ rsync_backups }}/thelounge.tar.gz"
     dest: backups
     archive: false
     checksum: true

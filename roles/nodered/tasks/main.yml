@@ -1,7 +1,7 @@
 - name: Make local copy of latest Node-RED backup
   synchronize:
     mode: pull
-    src: rsync://raspberrypi.fritz.box/docker/backups/pi/nodered.tar.gz
+    src: "{{ rsync_backups }}/nodered.tar.gz"
     dest: backups
     archive: false
     checksum: true

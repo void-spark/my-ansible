@@ -5,6 +5,7 @@
 
   roles:
     - docker_base
+    - portainer
 
   tasks:
   - name: Make local copy of latest backups
@@ -13,41 +14,6 @@
       src: rsync://raspberrypi.fritz.box/docker/backups/pi/
       dest: backups
     delegate_to: localhost
-
-  - name: "Restore portainer backup"
-    unarchive:
-      src: "backups/portainer.tar.gz"
-      creates: "/var/docker/data/portainer"
-      dest: "/var/docker/data"
-
-  - name: "Copy Portainer compose project"
-    copy:
-      src: portainer
-      dest: /var/docker/compose
-
-  - name: Pull Portainer image
-    docker_image:
-      name: portainer/portainer
-      source: pull
-
-  - name: "Create and start Portainer service"
-    docker_compose:
-      project_src: /var/docker/compose/portainer
-
-  - name: Create Portainer maintenance cron task
-    cron:
-      name: Portainer maintenance
-      minute: "20"
-      hour: "4"
-      user: root
-      job: >
-        docker pull portainer/portainer ;
-        pushd /var/docker/compose/portainer ;
-        /usr/local/bin/docker-compose down ;
-        tar -czf /var/docker/backups/portainer.tar.gz -C /var/docker/data/ portainer/ ;
-        rsync -av --inplace /var/docker/backups/ rsync://raspberrypi.fritz.box/docker/backups/pi/ ;
-        /usr/local/bin/docker-compose up -d
-      cron_file: portainer-maint
 
   - name: "Copy Mosquitto compose project"
     copy:

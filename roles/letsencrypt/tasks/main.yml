@@ -18,6 +18,11 @@
     src: letsencrypt
     dest: /var/docker/compose
 
+- name: "Copy Let's Encrypt compose project file"
+  template:
+    src: letsencrypt/docker-compose.yml.j2
+    dest: /var/docker/compose/letsencrypt/docker-compose.yml
+
 - name: "Pull Let's Encrypt image"
   docker_image:
     name: linuxserver/letsencrypt

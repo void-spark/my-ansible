@@ -1,0 +1,21 @@
+---
+version: '3'
+services:
+  letsencrypt:
+    image: linuxserver/letsencrypt
+    container_name: letsencrypt
+    cap_add:
+      - NET_ADMIN
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/Amsterdam
+      - URL={{ letsencrypt_url }}
+      - VALIDATION=http
+      - EMAIL={{ letsencrypt_email }}
+    volumes:
+      - /var/docker/data/letsencrypt:/config
+    ports:
+      - 80:80
+      - 443:443
+    restart: unless-stopped

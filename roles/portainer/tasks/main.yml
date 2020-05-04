@@ -1,4 +1,4 @@
-- name: Make local copy of latest backup
+- name: Make local copy of latest portainer backup
   synchronize:
     mode: pull
     src: rsync://raspberrypi.fritz.box/docker/backups/pi/portainer.tar.gz

@@ -5,6 +5,7 @@
   roles:
     - docker_base
     - portainer
+    - letsencrypt
     - mosquitto
 
   tasks:
@@ -14,41 +15,6 @@
       src: rsync://raspberrypi.fritz.box/docker/backups/pi/
       dest: backups
     delegate_to: localhost
-
-  - name: "Restore Let's Encrypt backup"
-    unarchive:
-      src: "backups/letsencrypt.tar.gz"
-      creates: "/var/docker/data/letsencrypt"
-      dest: "/var/docker/data"
-
-  - name: "Copy Let's Encrypt compose project"
-    copy:
-      src: letsencrypt
-      dest: /var/docker/compose
-
-  - name: "Pull Let's Encrypt image"
-    docker_image:
-      name: linuxserver/letsencrypt
-      source: pull
-
-  - name: "Create and start Let's Encrypt service"
-    docker_compose:
-      project_src: /var/docker/compose/letsencrypt
-
-  - name: "Create Let's Encrypt maintenance cron task"
-    cron:
-      name: "Let's Encrypt maintenance"
-      minute: "40"
-      hour: "4"
-      user: root
-      job: >
-        docker pull linuxserver/letsencrypt ;
-        pushd /var/docker/compose/letsencrypt ;
-        /usr/local/bin/docker-compose down ;
-        tar -czf /var/docker/backups/letsencrypt.tar.gz -C /var/docker/data/ letsencrypt/ ;
-        rsync -av --inplace /var/docker/backups/ rsync://raspberrypi.fritz.box/docker/backups/pi/ ;
-        /usr/local/bin/docker-compose up -d
-      cron_file: letsencrypt-maint
 
   - name: "Restore The Lounge backup"
     unarchive:

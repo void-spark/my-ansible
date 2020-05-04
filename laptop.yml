@@ -3,5 +3,5 @@
   hosts: raspberrypi.fritz.box
   roles:
     - laptop
+    - fileserver
     - tribler
-

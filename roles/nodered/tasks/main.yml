@@ -1,3 +1,29 @@
+- name: store git username
+  git_config:
+    name: user.name
+    scope: global
+    value: "{{ git_name }}"
+
+- name: Store git email
+  git_config:
+    name: user.email
+    scope: global
+    value: "{{ git_email }}"
+
+- name: Store git credentials
+  copy:
+    content: "https://{{ git_name }}:{{ git_pw }}@github.com"
+    dest: "/root/.git-credentials"
+    owner: root
+    group: root
+    mode: 0600
+
+- name: Use stored git credentials
+  git_config:
+    name: credential.helper
+    scope: global
+    value: store
+
 - name: Make local copy of latest Node-RED backup
   synchronize:
     mode: pull
@@ -27,3 +53,27 @@
   docker_compose:
     build: yes
     project_src: /var/docker/compose/nodered
+
+- name: "Create Node-RED maintenance cron task"
+  cron:
+    name: "Node-RED maintenance"
+    minute: "10"
+    hour: "4"
+    user: root
+    job: >
+      docker pull nodered/node-red ;
+      pushd /var/docker/compose/nodered ;
+      /usr/local/bin/docker-compose down ;
+      tar -czf /var/docker/backups/nodered.tar.gz -C /var/docker/data/ nodered/ ;
+      rsync -av --inplace /var/docker/backups/ "{{ rsync_backups }}/" ;
+      pushd /tmp ;
+      git clone https://github.com/void-spark/node-red-config.git ;
+      pushd node-red-config ;
+      cat /var/docker/data/nodered/flows.json | python -m json.tool > flows_raspberrypi.json ;
+      git commit -am "Auto commit `date -Iminutes`" ;
+      git push -u origin master ;
+      popd ;
+      rm -rf node-red-config ;
+      popd ;
+      /usr/local/bin/docker-compose up -d
+    cron_file: nodered-maint

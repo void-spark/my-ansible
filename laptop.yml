@@ -7,6 +7,7 @@
     rsync_backups: "rsync://raspberrypi.fritz.box/docker/backups/pi"
   roles:
     - laptop
+    - dhcp
     - fileserver
     - tribler
     - docker_base

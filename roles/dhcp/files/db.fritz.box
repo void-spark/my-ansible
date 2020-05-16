@@ -1,0 +1,17 @@
+$TTL	604800
+@	IN	SOA	ns1.fritz.box. root.ns1.fritz.box. (
+			      2		; Serial
+			 604800		; Refresh
+			  86400		; Retry
+			2419200		; Expire
+			 604800 )	; Negative Cache TTL
+;
+
+@				IN	NS	ns1.fritz.box.
+
+ns1				IN	A	192.168.178.34
+
+raspberrypi		IN	A	192.168.178.34
+coreelec		IN	A	192.168.178.58
+idrac-hhrdg4j	IN	A	192.168.178.64
+pve				IN	A	192.168.178.60

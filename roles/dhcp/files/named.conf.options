@@ -1,0 +1,13 @@
+options {
+	directory "/var/cache/bind";
+
+	forwarders {
+		// XS4ALL name servers
+		194.109.6.66;
+		194.109.9.99;
+	};
+
+	dnssec-validation auto;
+
+	listen-on-v6 { any; };
+};

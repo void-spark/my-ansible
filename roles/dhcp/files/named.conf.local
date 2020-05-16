@@ -1,0 +1,9 @@
+zone "fritz.box" IN {
+    type master;
+    file "/etc/bind/db.fritz.box";
+};
+
+zone "178.168.192.in-addr.arpa" IN {
+    type master;
+    file "/etc/bind/db.192.168.178";
+};

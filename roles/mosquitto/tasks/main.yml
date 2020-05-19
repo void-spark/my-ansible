@@ -12,15 +12,23 @@
   docker_compose:
     project_src: /var/docker/compose/mosquitto
 
-- name: Create Mosquitto maintenance cron task
+- name: "Create Mosquitto maintenance cron task"
   cron:
     name: Mosquitto maintenance
     minute: "30"
     hour: "4"
     user: root
     job: >
-      docker pull eclipse-mosquitto ;
-      pushd /var/docker/compose/mosquitto ;
-      /usr/local/bin/docker-compose down ;
+      docker pull eclipse-mosquitto &&
+      pushd /var/docker/compose/mosquitto &&
+      /usr/local/bin/docker-compose down &&
       /usr/local/bin/docker-compose up -d
+    cron_file: mosquitto-maint
+
+- name: "Set shell for Mosquitto maintenance cron task"
+  cron:
+    name: "SHELL"
+    env: yes
+    job: "/usr/bin/bash"
+    user: root
     cron_file: mosquitto-maint

@@ -61,19 +61,28 @@
     hour: "4"
     user: root
     job: >
-      docker pull nodered/node-red ;
-      pushd /var/docker/compose/nodered ;
-      /usr/local/bin/docker-compose down ;
-      tar -czf /var/docker/backups/nodered.tar.gz -C /var/docker/data/ nodered/ ;
-      rsync -av --inplace /var/docker/backups/ "{{ rsync_backups }}/" ;
-      pushd /tmp ;
-      git clone https://github.com/void-spark/node-red-config.git ;
-      pushd node-red-config ;
-      cat /var/docker/data/nodered/flows.json | python -m json.tool > flows_raspberrypi.json ;
+      docker pull nodered/node-red &&
+      pushd /var/docker/compose/nodered &&
+      /usr/local/bin/docker-compose down &&
+      tar -czf /var/docker/backups/nodered.tar.gz -C /var/docker/data/ nodered/ &&
+      rsync -av --inplace /var/docker/backups/ "{{ rsync_backups }}/" &&
+      pushd /tmp &&
+      rm -rf node-red-config &&
+      git clone https://github.com/void-spark/node-red-config.git &&
+      pushd node-red-config &&
+      cat /var/docker/data/nodered/flows.json | python -m json.tool > flows_raspberrypi.json &&
       git commit -am "Auto commit `date -Iminutes`" ;
       git push -u origin master ;
-      popd ;
-      rm -rf node-red-config ;
-      popd ;
+      popd &&
+      rm -rf node-red-config &&
+      popd &&
       /usr/local/bin/docker-compose up -d
+    cron_file: nodered-maint
+
+- name: "Set shell for Node-RED maintenance cron task"
+  cron:
+    name: "SHELL"
+    env: yes
+    job: "/usr/bin/bash"
+    user: root
     cron_file: nodered-maint

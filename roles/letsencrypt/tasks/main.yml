@@ -39,10 +39,18 @@
     hour: "4"
     user: root
     job: >
-      docker pull linuxserver/letsencrypt ;
-      pushd /var/docker/compose/letsencrypt ;
-      /usr/local/bin/docker-compose down ;
-      tar -czf /var/docker/backups/letsencrypt.tar.gz -C /var/docker/data/ letsencrypt/ ;
-      rsync -av --inplace /var/docker/backups/ "{{ rsync_backups }}/" ;
+      docker pull linuxserver/letsencrypt &&
+      pushd /var/docker/compose/letsencrypt &&
+      /usr/local/bin/docker-compose down &&
+      tar -czf /var/docker/backups/letsencrypt.tar.gz -C /var/docker/data/ letsencrypt/ &&
+      rsync -av --inplace /var/docker/backups/ "{{ rsync_backups }}/" &&
       /usr/local/bin/docker-compose up -d
+    cron_file: letsencrypt-maint
+
+- name: "Set shell for Let's Encrypt maintenance cron task"
+  cron:
+    name: "SHELL"
+    env: yes
+    job: "/usr/bin/bash"
+    user: root
     cron_file: letsencrypt-maint

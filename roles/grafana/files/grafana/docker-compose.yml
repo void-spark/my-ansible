@@ -1,0 +1,13 @@
+---
+version: '3'
+services:
+  nodered:
+    image: grafana/grafana
+    container_name: grafana
+    environment:
+      - TZ=Europe/Amsterdam
+    volumes:
+      - /var/docker/data/grafana:/var/lib/grafana
+    ports:
+      - 3000:3000
+    restart: unless-stopped

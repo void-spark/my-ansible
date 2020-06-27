@@ -1,0 +1,52 @@
+- name: Make local copy of latest Grafana backup
+  synchronize:
+    mode: pull
+    src: "{{ rsync_backups }}/grafana.tar.gz"
+    dest: backups
+    archive: false
+    checksum: true
+  delegate_to: localhost
+
+- name: "Restore Grafana backup"
+  unarchive:
+    src: "backups/grafana.tar.gz"
+    creates: "/var/docker/data/grafana"
+    dest: "/var/docker/data"
+
+- name: "Copy Grafana compose project"
+  copy:
+    src: grafana
+    dest: /var/docker/compose
+
+- name: "Pull Grafana image"
+  docker_image:
+    name: grafana/grafana
+    source: pull
+
+- name: "Create and start Grafana service"
+  docker_compose:
+    build: yes
+    project_src: /var/docker/compose/grafana
+
+- name: "Create Grafana maintenance cron task"
+  cron:
+    name: "Grafana maintenance"
+    minute: "18"
+    hour: "4"
+    user: root
+    job: >
+      docker pull grafana/grafana &&
+      pushd /var/docker/compose/grafana &&
+      /usr/local/bin/docker-compose down &&
+      tar -czf /var/docker/backups/grafana.tar.gz -C /var/docker/data/ grafana/ &&
+      rsync -av --inplace /var/docker/backups/ "{{ rsync_backups }}/" &&
+      /usr/local/bin/docker-compose up -d
+    cron_file: grafana-maint
+
+- name: "Set shell for Grafana maintenance cron task"
+  cron:
+    name: "SHELL"
+    env: yes
+    job: "/usr/bin/bash"
+    user: root
+    cron_file: grafana-maint

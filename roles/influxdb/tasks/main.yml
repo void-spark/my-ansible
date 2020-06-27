@@ -1,0 +1,52 @@
+- name: Make local copy of latest InfluxDB backup
+  synchronize:
+    mode: pull
+    src: "{{ rsync_backups }}/influxdb.tar.gz"
+    dest: backups
+    archive: false
+    checksum: true
+  delegate_to: localhost
+
+- name: "Restore InfluxDB backup"
+  unarchive:
+    src: "backups/influxdb.tar.gz"
+    creates: "/var/docker/data/influxdb"
+    dest: "/var/docker/data"
+
+- name: "Copy InfluxDB compose project"
+  copy:
+    src: influxdb
+    dest: /var/docker/compose
+
+- name: "Pull InfluxDB image"
+  docker_image:
+    name: influxdb
+    source: pull
+
+- name: "Create and start InfluxDB service"
+  docker_compose:
+    build: yes
+    project_src: /var/docker/compose/influxdb
+
+- name: "Create InfluxDB maintenance cron task"
+  cron:
+    name: "InfluxDB maintenance"
+    minute: "15"
+    hour: "4"
+    user: root
+    job: >
+      docker pull influxdb &&
+      pushd /var/docker/compose/influxdb &&
+      /usr/local/bin/docker-compose down &&
+      tar -czf /var/docker/backups/influxdb.tar.gz -C /var/docker/data/ influxdb/ &&
+      rsync -av --inplace /var/docker/backups/ "{{ rsync_backups }}/" &&
+      /usr/local/bin/docker-compose up -d
+    cron_file: influxdb-maint
+
+- name: "Set shell for InfluxDB maintenance cron task"
+  cron:
+    name: "SHELL"
+    env: yes
+    job: "/usr/bin/bash"
+    user: root
+    cron_file: influxdb-maint

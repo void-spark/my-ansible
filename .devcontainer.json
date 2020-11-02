@@ -4,5 +4,6 @@
         "context": "./ansible" 
     },
     "mounts": ["source=${localEnv:USERPROFILE}/.ssh,target=/tmp/.ssh,type=bind,readonly"],
-    "postCreateCommand": "/usr/local/bin/docker-entrypoint.sh"
+    "postCreateCommand": "/usr/local/bin/docker-entrypoint.sh",
+    "extensions": ["vscoss.vscode-ansible"]
 }

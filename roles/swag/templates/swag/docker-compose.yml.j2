@@ -1,9 +1,9 @@
 ---
 version: '3'
 services:
-  letsencrypt:
-    image: linuxserver/letsencrypt
-    container_name: letsencrypt
+  swag:
+    image: linuxserver/swag
+    container_name: swag
     cap_add:
       - NET_ADMIN
     environment:
@@ -14,7 +14,7 @@ services:
       - VALIDATION=http
       - EMAIL={{ letsencrypt_email }}
     volumes:
-      - /var/docker/data/letsencrypt:/config
+      - /var/docker/data/swag:/config
     ports:
       - 80:80
       - 443:443

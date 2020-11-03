@@ -1,0 +1,61 @@
+- name: "Make local copy of latest SWAG backup"
+  synchronize:
+    mode: pull
+    src: "{{ rsync_backups }}/swag.tar.gz"
+    dest: backups
+    archive: false
+    checksum: true
+  delegate_to: localhost
+
+- name: "Restore SWAG backup"
+  unarchive:
+    src: "backups/swag.tar.gz"
+    creates: "/var/docker/data/swag"
+    dest: "/var/docker/data"
+
+- name: "Copy SWAG compose directory"
+  file:
+    path: /var/docker/compose/swag
+    state: directory
+
+- name: "Copy SWAG compose project"
+  copy:
+    src: swag
+    dest: /var/docker/compose
+
+- name: "Copy SWAG compose project file"
+  template:
+    src: swag/docker-compose.yml.j2
+    dest: /var/docker/compose/swag/docker-compose.yml
+
+- name: "Pull SWAG image"
+  docker_image:
+    name: linuxserver/swag
+    source: pull
+
+- name: "Create and start SWAG service"
+  docker_compose:
+    project_src: /var/docker/compose/swag
+
+- name: "Create SWAG maintenance cron task"
+  cron:
+    name: "SWAG maintenance"
+    minute: "40"
+    hour: "4"
+    user: root
+    job: >
+      docker pull linuxserver/swag &&
+      pushd /var/docker/compose/swag &&
+      /usr/local/bin/docker-compose down &&
+      tar -czf /var/docker/backups/swag.tar.gz -C /var/docker/data/ swag/ &&
+      rsync -av --inplace /var/docker/backups/ "{{ rsync_backups }}/" &&
+      /usr/local/bin/docker-compose up -d
+    cron_file: swag-maint
+
+- name: "Set shell for SWAG maintenance cron task"
+  cron:
+    name: "SHELL"
+    env: yes
+    job: "/usr/bin/bash"
+    user: root
+    cron_file: swag-maint

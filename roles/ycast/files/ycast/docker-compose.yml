@@ -1,0 +1,13 @@
+---
+version: '3'
+services:
+  nodered:
+    image: netraams/ycast-docker
+    container_name: ycast
+    environment:
+      - TZ=Europe/Amsterdam
+    volumes:
+      - /var/docker/data/ycast/stations:/opt/ycast/stations/
+    ports:
+      - 9200:80
+    restart: unless-stopped

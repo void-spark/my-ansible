@@ -1,0 +1,29 @@
+- name: "Copy YCast compose project"
+  copy:
+    src: ycast
+    dest: /var/docker/compose
+
+- name: "Pull YCast image"
+  docker_image:
+    name: netraams/ycast-docker
+    source: pull
+
+- name: "Create and start YCast service"
+  docker_compose:
+    build: yes
+    project_src: /var/docker/compose/ycast
+
+- name: "Copy YCast nginx configuration file"
+  copy:
+    src: ycast.conf
+    dest: /var/docker/data/swag/nginx/site-confs/00_ycast.conf
+    owner: void-spark
+    group: void-spark
+    mode: 0664
+  register: ycast_conf
+
+- name: "Restart swag"
+  docker_compose:
+    project_src: /var/docker/compose/swag
+    restarted: yes
+  when: ycast_conf.changed

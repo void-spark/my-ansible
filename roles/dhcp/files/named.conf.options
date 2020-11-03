@@ -10,4 +10,8 @@ options {
 	dnssec-validation auto;
 
 	listen-on-v6 { any; };
+
+	response-policy {
+		zone "rpz.ycast";
+	};
 };

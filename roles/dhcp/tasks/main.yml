@@ -32,6 +32,7 @@
   with_items:
     - db.fritz.box
     - db.192.168.178
+    - rpz.ycast
   register: bind9_zones
 
 - name: Restart DNS server

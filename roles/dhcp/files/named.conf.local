@@ -7,3 +7,9 @@ zone "178.168.192.in-addr.arpa" IN {
     type master;
     file "/etc/bind/db.192.168.178";
 };
+
+zone "rpz.ycast" {
+    type master;
+    file "/etc/bind/rpz.ycast";
+    allow-query { localhost; };
+};

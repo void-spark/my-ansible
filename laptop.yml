@@ -13,8 +13,9 @@
     - docker_base
     - portainer
     - mosquitto
-    - letsencrypt
+    - swag
     - thelounge
     - nodered
     - influxdb
     - grafana
+    - ycast

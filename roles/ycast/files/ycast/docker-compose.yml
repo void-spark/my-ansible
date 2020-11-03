@@ -6,6 +6,7 @@ services:
     container_name: ycast
     environment:
       - TZ=Europe/Amsterdam
+      - YC_STATIONS=/opt/ycast/stations/stations.yml
     volumes:
       - /var/docker/data/ycast/stations:/opt/ycast/stations/
     ports:

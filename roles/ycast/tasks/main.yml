@@ -3,6 +3,12 @@
     src: ycast
     dest: /var/docker/compose
 
+- name: "Copy YCast stations file"
+  copy:
+    src: stations.yml
+    dest: /var/docker/data/ycast/stations/stations.yml
+  register: stations
+
 - name: "Pull YCast image"
   docker_image:
     name: netraams/ycast-docker

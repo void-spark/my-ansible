@@ -8,6 +8,8 @@ services:
       - TZ=Europe/Amsterdam
     volumes:
       - /var/docker/data/nodered:/data
+    devices:
+      - /dev/snd:/dev/snd
     ports:
       - 1880:1880
     restart: unless-stopped

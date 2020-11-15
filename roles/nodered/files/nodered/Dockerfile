@@ -3,6 +3,7 @@ FROM nodered/node-red
 USER root
 
 RUN apk add vorbis-tools
+RUN apk add mpg123
 RUN apk add alsa-utils
 
 # 29 is usually audio gid on debian, and seemd unused in docker alpine.

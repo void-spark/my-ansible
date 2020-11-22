@@ -8,7 +8,7 @@
     src: "{{ item }}"
     dest: /etc/network/interfaces.d/{{ item }}
     owner: root
-    group: bind
+    group: root
     mode: 0644
   with_items:
     - static
@@ -19,11 +19,22 @@
     state: present
     update_cache: true
 
-# - name: Install DHCP server
-#   apt:
-#     name: isc-dhcp-server
-#     state: present
+- name: Install DHCP server
+  apt:
+    name: isc-dhcp-server
+    state: present
 
+- name: Copy DHCP configuration files
+  copy:
+    src: "{{ item }}"
+    dest: /etc/{{ item }}
+    owner: root
+    group: root
+    mode: 0644
+  with_items:
+    - dhcp/dhcpd.conf
+    - default/isc-dhcp-server
+  register: dhcp_conf
 
 - name: Copy DNS configuration files
   copy:
@@ -49,6 +60,12 @@
     - db.192.168.178
     - rpz.ycast
   register: bind9_zones
+
+- name: Restart DHCP server
+  service:
+    name: isc-dhcp-server
+    state: restarted
+  when: dhcp_conf.changed
 
 - name: Restart DNS server
   service:

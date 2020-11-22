@@ -10,7 +10,7 @@ iface enx0050b6f33cbd inet static
       netmask 255.255.255.0
       gateway 192.168.178.1
       dns-domain fritz.box
-      ns-nameservers 192.168.178.34
+      dns-nameservers 192.168.178.34
 
 # Too slow, don't use
 iface enp6s0f0 inet manual

@@ -3,9 +3,9 @@
     name: resolvconf
     state: present
 
-- name: Copy static IP configuration
-  copy:
-    src: "{{ item }}"
+- name: Copy static IP configuration template
+  template:
+    src: "{{ item }}.j2"
     dest: /etc/network/interfaces.d/{{ item }}
     owner: root
     group: root
@@ -24,9 +24,9 @@
     name: isc-dhcp-server
     state: present
 
-- name: Copy DHCP configuration files
-  copy:
-    src: "{{ item }}"
+- name: Copy DHCP configuration templates
+  template:
+    src: "{{ item }}.j2"
     dest: /etc/{{ item }}
     owner: root
     group: root

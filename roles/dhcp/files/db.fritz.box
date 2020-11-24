@@ -14,6 +14,6 @@ ns1				IN	A	192.168.178.34
 @				IN	A	192.168.178.1
 debian			IN	A	192.168.178.34
 raspberrypi		IN	A	192.168.178.34
-coreelec		IN	A	192.168.178.58
-idrac-hhrdg4j	IN	A	192.168.178.64
-pve				IN	A	192.168.178.60
+coreelec		IN	A	192.168.178.18
+idrac-hhrdg4j	IN	A	192.168.178.26
+pve				IN	A	192.168.178.28

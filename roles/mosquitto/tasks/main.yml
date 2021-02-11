@@ -3,6 +3,12 @@
     src: mosquitto
     dest: /var/docker/compose
 
+- name: "Copy Mosquitto configuration file"
+  copy:
+    src: mosquitto.conf
+    dest: /var/docker/data/mosquitto/mosquitto.conf
+  register: stations
+
 - name: "Pull Mosquitto image"
   docker_image:
     name: eclipse-mosquitto
@@ -10,6 +16,7 @@
 
 - name: "Create and start Mosquitto service"
   docker_compose:
+    build: yes
     project_src: /var/docker/compose/mosquitto
 
 - name: "Create Mosquitto maintenance cron task"

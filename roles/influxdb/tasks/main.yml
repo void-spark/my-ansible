@@ -1,7 +1,7 @@
 - name: Make local copy of latest InfluxDB backup
   synchronize:
     mode: pull
-    src: "{{ rsync_backups }}/influxdb.tar.gz"
+    src: "{{ rsync_backups }}/influxdb2.tar.gz"
     dest: backups
     archive: false
     checksum: true
@@ -9,8 +9,8 @@
 
 - name: "Restore InfluxDB backup"
   unarchive:
-    src: "backups/influxdb.tar.gz"
-    creates: "/var/docker/data/influxdb"
+    src: "backups/influxdb2.tar.gz"
+    creates: "/var/docker/data/influxdb2"
     dest: "/var/docker/data"
 
 - name: "Copy InfluxDB compose project"
@@ -38,7 +38,7 @@
       docker pull influxdb &&
       pushd /var/docker/compose/influxdb &&
       /usr/local/bin/docker-compose down &&
-      tar -czf /var/docker/backups/influxdb.tar.gz -C /var/docker/data/ influxdb/ &&
+      tar -czf /var/docker/backups/influxdb2.tar.gz -C /var/docker/data/ influxdb2/ &&
       rsync -av --inplace /var/docker/backups/ "{{ rsync_backups }}/" &&
       /usr/local/bin/docker-compose up -d
     cron_file: influxdb-maint

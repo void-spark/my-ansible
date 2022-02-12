@@ -13,15 +13,10 @@
     creates: "/var/docker/data/swag"
     dest: "/var/docker/data"
 
-- name: "Copy SWAG compose directory"
+- name: "Create SWAG compose directory"
   file:
     path: /var/docker/compose/swag
     state: directory
-
-- name: "Copy SWAG compose project"
-  copy:
-    src: swag
-    dest: /var/docker/compose
 
 - name: "Copy SWAG compose project file"
   template:

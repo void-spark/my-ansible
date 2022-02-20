@@ -5,6 +5,7 @@ USER root
 RUN apk add vorbis-tools
 RUN apk add mpg123
 RUN apk add alsa-utils
+RUN apk add ffmpeg
 
 # 29 is usually audio gid on debian, and seemd unused in docker alpine.
 # This is fragile to say the least, but works for now.
@@ -19,3 +20,4 @@ RUN npm install node-red-contrib-credentials
 RUN npm install node-red-contrib-sun-position
 RUN npm install node-red-contrib-influxdb
 RUN npm install node-red-contrib-play-sound
+RUN npm install node-red-contrib-pipe2jpeg

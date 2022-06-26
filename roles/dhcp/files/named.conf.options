@@ -2,9 +2,9 @@ options {
 	directory "/var/cache/bind";
 
 	forwarders {
-		// XS4ALL name servers
-		194.109.6.66;
-		194.109.9.99;
+		// KPN name servers
+		195.121.1.34;
+		195.121.1.66;
 	};
 
 	dnssec-validation auto;

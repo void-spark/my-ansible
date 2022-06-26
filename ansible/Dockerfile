@@ -17,6 +17,9 @@ RUN apt-get update \
 && pip3 install proxmoxer \
 && pip3 install requests
 
+RUN addgroup --gid 1000 vscode
+RUN useradd -rm -d /home/vscode -s /bin/bash -g vscode -G sudo -u 1000 vscode
+
 COPY docker-entrypoint.sh /usr/local/bin/
 RUN ln -s /usr/local/bin/docker-entrypoint.sh / # backwards compat
 ENTRYPOINT ["docker-entrypoint.sh"]

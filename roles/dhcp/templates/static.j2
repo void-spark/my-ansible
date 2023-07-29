@@ -1,7 +1,6 @@
 # Static IP configuration to put in /etc/network/interfaces.d/static
 
-# Our main interface, since it's USB add allow-hotplug
-allow-hotplug {{ primary_interface }}
+auto {{ primary_interface }}
 iface {{ primary_interface }} inet static
       address 192.168.178.34
       netmask 255.255.255.0

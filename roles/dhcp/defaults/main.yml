@@ -1,7 +1,3 @@
 # Amazon USB
-primary_interface: enx0050b6f33cbd
-disable_interfaces:
-  # Onboard, Too slow, don't use
-  - enp6s0f0
-  # Bad USB, Broken, don't use
-  - enx000ec79ecc2e
+primary_interface: eno1
+disable_interfaces: []

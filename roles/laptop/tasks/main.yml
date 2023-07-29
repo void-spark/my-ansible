@@ -12,7 +12,7 @@
 - name: Mount up device by UUID
   mount:
     path: /mnt/data
-    src: UUID=479b6f24-cf70-48c2-bab7-735026032a45
+    src: UUID=034b76db-7b37-47f9-bdac-07091033fcbe
     fstype: ext4
     opts: errors=remount-ro
     passno: '2'

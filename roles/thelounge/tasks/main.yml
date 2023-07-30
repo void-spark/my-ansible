@@ -37,10 +37,10 @@
     job: >
       docker pull thelounge/thelounge &&
       pushd /var/docker/compose/thelounge &&
-      /usr/local/bin/docker-compose down &&
+      /usr/bin/docker-compose down &&
       tar -czf /var/docker/backups/thelounge.tar.gz -C /var/docker/data/ thelounge/ &&
       rsync -av --inplace /var/docker/backups/ "{{ rsync_backups }}/" &&
-      /usr/local/bin/docker-compose up -d
+      /usr/bin/docker-compose up -d
     cron_file: thelounge-maint
 
 - name: "Set shell for The Lounge maintenance cron task"

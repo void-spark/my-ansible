@@ -41,10 +41,10 @@
     job: >
       docker pull linuxserver/swag &&
       pushd /var/docker/compose/swag &&
-      /usr/local/bin/docker-compose down &&
+      /usr/bin/docker-compose down &&
       tar -czf /var/docker/backups/swag.tar.gz -C /var/docker/data/ swag/ &&
       rsync -av --inplace /var/docker/backups/ "{{ rsync_backups }}/" &&
-      /usr/local/bin/docker-compose up -d
+      /usr/bin/docker-compose up -d
     cron_file: swag-maint
 
 - name: "Set shell for SWAG maintenance cron task"

@@ -37,10 +37,10 @@
     job: >
       docker pull influxdb &&
       pushd /var/docker/compose/influxdb &&
-      /usr/local/bin/docker-compose down &&
+      /usr/bin/docker-compose down &&
       tar -czf /var/docker/backups/influxdb2.tar.gz -C /var/docker/data/ influxdb2/ &&
       rsync -av --inplace /var/docker/backups/ "{{ rsync_backups }}/" &&
-      /usr/local/bin/docker-compose up -d
+      /usr/bin/docker-compose up -d
     cron_file: influxdb-maint
 
 - name: "Set shell for InfluxDB maintenance cron task"

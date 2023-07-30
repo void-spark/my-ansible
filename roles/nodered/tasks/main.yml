@@ -63,8 +63,8 @@
     job: >
       docker pull nodered/node-red &&
       pushd /var/docker/compose/nodered &&
-      /usr/local/bin/docker-compose down &&
-      /usr/local/bin/docker-compose build &&  
+      /usr/bin/docker-compose down &&
+      /usr/bin/docker-compose build &&  
       tar -czf /var/docker/backups/nodered.tar.gz -C /var/docker/data/ nodered/ &&
       rsync -av --inplace /var/docker/backups/ "{{ rsync_backups }}/" &&
       pushd /tmp &&
@@ -77,7 +77,7 @@
       popd &&
       rm -rf node-red-config &&
       popd &&
-      /usr/local/bin/docker-compose up -d
+      /usr/bin/docker-compose up -d
     cron_file: nodered-maint
 
 - name: "Set shell for Node-RED maintenance cron task"

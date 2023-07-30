@@ -37,10 +37,10 @@
     job: >
       docker pull grafana/grafana &&
       pushd /var/docker/compose/grafana &&
-      /usr/local/bin/docker-compose down &&
+      /usr/bin/docker-compose down &&
       tar -czf /var/docker/backups/grafana.tar.gz -C /var/docker/data/ grafana/ &&
       rsync -av --inplace /var/docker/backups/ "{{ rsync_backups }}/" &&
-      /usr/local/bin/docker-compose up -d
+      /usr/bin/docker-compose up -d
     cron_file: grafana-maint
 
 - name: "Set shell for Grafana maintenance cron task"

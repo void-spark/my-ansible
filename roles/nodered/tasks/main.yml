@@ -71,7 +71,7 @@
       rm -rf node-red-config &&
       git clone https://github.com/void-spark/node-red-config.git &&
       pushd node-red-config &&
-      cat /var/docker/data/nodered/flows.json | python -m json.tool > flows_raspberrypi.json &&
+      cat /var/docker/data/nodered/flows.json | python3 -m json.tool > flows_raspberrypi.json &&
       git commit -am "Auto commit `date -Iminutes`" ;
       git push -u origin master ;
       popd &&

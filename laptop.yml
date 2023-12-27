@@ -15,6 +15,7 @@
     - mosquitto
     - swag
     - thelounge
+    - homeassistant
     - nodered
     - influxdb
     - grafana

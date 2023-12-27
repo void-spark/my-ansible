@@ -1,0 +1,14 @@
+---
+version: '3'
+services:
+  homeassistant:
+    image: "ghcr.io/home-assistant/home-assistant:stable"
+    container_name: homeassistant
+    environment:
+      - TZ=Europe/Amsterdam
+    volumes:
+      - /var/docker/data/homeassistant:/config
+      - /etc/localtime:/etc/localtime:ro
+    restart: unless-stopped
+    privileged: true
+    network_mode: host

@@ -1,0 +1,52 @@
+- name: Make local copy of latest Home Assistant backup
+  synchronize:
+    mode: pull
+    src: "{{ rsync_backups }}/homeassistant.tar.gz"
+    dest: backups
+    archive: false
+    checksum: true
+  delegate_to: localhost
+
+- name: "Restore Home Assistant backup"
+  unarchive:
+    src: "backups/homeassistant.tar.gz"
+    creates: "/var/docker/data/homeassistant"
+    dest: "/var/docker/data"
+
+- name: "Copy Home Assistant compose project"
+  copy:
+    src: homeassistant
+    dest: /var/docker/compose
+
+- name: "Pull Home Assistant image"
+  docker_image:
+    name: ghcr.io/home-assistant/home-assistant:stable
+    source: pull
+
+- name: "Create and start Home Assistant service"
+  docker_compose:
+    build: yes
+    project_src: /var/docker/compose/homeassistant
+
+- name: "Create Home Assistant maintenance cron task"
+  cron:
+    name: "Home Assistant maintenance"
+    minute: "25"
+    hour: "4"
+    user: root
+    job: >
+      docker pull ghcr.io/home-assistant/home-assistant:stable &&
+      pushd /var/docker/compose/homeassistant &&
+      /usr/bin/docker-compose down &&
+      tar -czf /var/docker/backups/homeassistant.tar.gz -C /var/docker/data/ homeassistant/ &&
+      rsync -av --inplace /var/docker/backups/ "{{ rsync_backups }}/" &&
+      /usr/bin/docker-compose up -d
+    cron_file: homeassistant-maint
+
+- name: "Set shell for Home Assistant maintenance cron task"
+  cron:
+    name: "SHELL"
+    env: yes
+    job: "/usr/bin/bash"
+    user: root
+    cron_file: homeassistant-maint

@@ -20,7 +20,7 @@
 
 - name: Pull Portainer image
   docker_image:
-    name: portainer/portainer
+    name: portainer/portainer-ce
     source: pull
 
 - name: "Create and start Portainer service"
@@ -34,7 +34,7 @@
     hour: "4"
     user: root
     job: >
-      docker pull portainer/portainer &&
+      docker pull portainer/portainer-ce &&
       pushd /var/docker/compose/portainer &&
       /usr/bin/docker-compose down &&
       tar -czf /var/docker/backups/portainer.tar.gz -C /var/docker/data/ portainer/ &&

@@ -8,6 +8,8 @@ services:
       - TZ=Europe/Amsterdam
     volumes:
       - /var/docker/data/victoriametrics/data:/victoria-metrics-data
+    command:
+      - "-retentionPeriod=100y"
     ports:
       - 8428:8428
     restart: unless-stopped

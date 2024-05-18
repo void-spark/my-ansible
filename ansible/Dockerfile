@@ -1,24 +1,23 @@
-FROM ubuntu:18.04
+FROM ubuntu:24.04
 
-RUN apt-get update \
-&& apt-get install -y software-properties-common \
-&& apt-add-repository --yes --update ppa:ansible/ansible \
-&& apt-get install -y \
+RUN apt update \
+&& apt install -y software-properties-common \
+&& add-apt-repository --yes --update ppa:ansible/ansible \
+&& apt install -y \
     ansible \
     cpio \
     git \
+    locales \
+    locales-all \
     less \
     nano \
     python3 \
     python3-pip \
+    python3-proxmoxer \
+    python3-requests \
     rsync \
     wget \
-&& rm -rf /var/lib/apt/lists/* \
-&& pip3 install proxmoxer \
-&& pip3 install requests
-
-RUN addgroup --gid 1000 vscode
-RUN useradd -rm -d /home/vscode -s /bin/bash -g vscode -G sudo -u 1000 vscode
+&& rm -rf /var/lib/apt/lists/*
 
 COPY docker-entrypoint.sh /usr/local/bin/
 RUN ln -s /usr/local/bin/docker-entrypoint.sh / # backwards compat

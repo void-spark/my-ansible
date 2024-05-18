@@ -5,6 +5,6 @@
     },
     "mounts": ["source=${localEnv:HOME}/.ssh,target=/tmp/.ssh,type=bind,readonly"],
     "postCreateCommand": "/usr/local/bin/docker-entrypoint.sh",
-    "containerUser": "vscode",
+    "containerUser": "ubuntu",
     "extensions": ["vscoss.vscode-ansible"]
 }

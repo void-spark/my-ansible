@@ -1,0 +1,52 @@
+- name: Make local copy of latest VictoriaMetrics backup
+  synchronize:
+    mode: pull
+    src: "{{ rsync_backups }}/victoriametrics.tar.gz"
+    dest: backups
+    archive: false
+    checksum: true
+  delegate_to: localhost
+
+- name: "Restore VictoriaMetrics backup"
+  unarchive:
+    src: "backups/victoriametrics.tar.gz"
+    creates: "/var/docker/data/victoriametrics"
+    dest: "/var/docker/data"
+
+- name: "Copy VictoriaMetrics compose project"
+  copy:
+    src: victoriametrics
+    dest: /var/docker/compose
+
+- name: "Pull VictoriaMetrics image"
+  docker_image:
+    name: victoriametrics/victoria-metrics
+    source: pull
+
+- name: "Create and start VictoriaMetrics service"
+  docker_compose:
+    build: yes
+    project_src: /var/docker/compose/victoriametrics
+
+- name: "Create VictoriaMetrics maintenance cron task"
+  cron:
+    name: "VictoriaMetrics maintenance"
+    minute: "15"
+    hour: "4"
+    user: root
+    job: >
+      docker pull victoriametrics/victoria-metrics &&
+      pushd /var/docker/compose/victoriametrics &&
+      /usr/bin/docker-compose down &&
+      tar -czf /var/docker/backups/victoriametrics.tar.gz -C /var/docker/data/ victoriametrics/ &&
+      rsync -av --inplace /var/docker/backups/ "{{ rsync_backups }}/" &&
+      /usr/bin/docker-compose up -d
+    cron_file: victoriametrics-maint
+
+- name: "Set shell for VictoriaMetrics maintenance cron task"
+  cron:
+    name: "SHELL"
+    env: yes
+    job: "/usr/bin/bash"
+    user: root
+    cron_file: victoriametrics-maint

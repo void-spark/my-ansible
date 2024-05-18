@@ -1,0 +1,13 @@
+---
+version: '3'
+services:
+  nodered:
+    image: victoriametrics/victoria-metrics
+    container_name: victoriametrics
+    environment:
+      - TZ=Europe/Amsterdam
+    volumes:
+      - /var/docker/data/victoriametrics/data:/victoria-metrics-data
+    ports:
+      - 8428:8428
+    restart: unless-stopped

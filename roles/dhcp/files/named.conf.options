@@ -2,9 +2,9 @@ options {
 	directory "/var/cache/bind";
 
 	forwarders {
-		// KPN name servers
-		195.121.1.34;
-		195.121.1.66;
+		// Freedom name servers
+		185.93.175.43;
+		185.232.98.76;
 	};
 
 	dnssec-validation auto;

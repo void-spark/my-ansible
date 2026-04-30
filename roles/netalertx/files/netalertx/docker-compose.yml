@@ -1,0 +1,38 @@
+---
+version: '3'
+services:
+  netalertx:
+    image: ghcr.io/netalertx/netalertx
+    container_name: netalertx
+    network_mode: host
+    read_only: true
+    cap_drop:                                       # Drop all capabilities for enhanced security
+      - ALL
+    cap_add:
+      - NET_ADMIN                                   # Required for ARP scanning
+      - NET_RAW                                     # Required for raw socket operations
+      - NET_BIND_SERVICE                            # Required to bind to privileged ports (nbtscan)
+      - CHOWN                                       # Required for root-entrypoint to chown /data + /tmp before dropping privileges
+      - SETUID                                      # Required for root-entrypoint to switch to non-root user
+      - SETGID                                      # Required for root-entrypoint to switch to non-root group
+    volumes:
+      - /var/docker/data/netalertx:/data:rw
+      - /etc/localtime:/etc/localtime:ro
+      - /var/lib/dhcp:/resources/dhcp:ro
+    tmpfs:
+      - "/tmp:uid=20211,gid=20211,mode=1700,rw,noexec,nosuid,nodev,async,noatime,nodiratime"
+    environment:
+      LISTEN_ADDR: 0.0.0.0
+      PORT: 20211
+      GRAPHQL_PORT: 20212
+
+    # Resource limits to prevent resource exhaustion
+    mem_limit: 2048m            # Maximum memory usage
+    mem_reservation: 1024m      # Soft memory limit
+    cpu_shares: 512             # Relative CPU weight for CPU contention scenarios
+    pids_limit: 512             # Limit the number of processes/threads to prevent fork bombs
+    logging:
+      options:
+        max-size: "10m"         # Rotate log files after they reach 10MB
+        max-file: "3"           # Keep a maximum of 3 log files
+    restart: unless-stopped

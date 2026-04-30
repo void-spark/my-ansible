@@ -1,0 +1,51 @@
+- name: Make local copy of latest NetAlertX backup
+  synchronize:
+    mode: pull
+    src: "{{ rsync_backups }}/netalertx.tar.gz"
+    dest: backups
+    archive: false
+    checksum: true
+  delegate_to: localhost
+
+- name: "Restore NetAlertX backup"
+  unarchive:
+    src: "backups/netalertx.tar.gz"
+    creates: "/var/docker/data/netalertx"
+    dest: "/var/docker/data"
+
+- name: "Copy NetAlertX compose project"
+  copy:
+    src: netalertx
+    dest: /var/docker/compose
+
+- name: Pull NetAlertX image
+  docker_image:
+    name: ghcr.io/netalertx/netalertx
+    source: pull
+
+- name: "Create and start NetAlertX service"
+  docker_compose:
+    project_src: /var/docker/compose/netalertx
+
+- name: Create NetAlertX maintenance cron task
+  cron:
+    name: NetAlertX maintenance
+    minute: "55"
+    hour: "4"
+    user: root
+    job: >
+      docker pull ghcr.io/netalertx/netalertx &&
+      pushd /var/docker/compose/netalertx &&
+      /usr/bin/docker-compose down &&
+      tar -czf /var/docker/backups/netalertx.tar.gz -C /var/docker/data/ netalertx/ &&
+      rsync -av --inplace /var/docker/backups/ "{{ rsync_backups }}/" &&
+      /usr/bin/docker-compose up -d
+    cron_file: netalertx-maint
+
+- name: "Set shell for NetAlertX maintenance cron task"
+  cron:
+    name: "SHELL"
+    env: yes
+    job: "/usr/bin/bash"
+    user: root
+    cron_file: netalertx-maint

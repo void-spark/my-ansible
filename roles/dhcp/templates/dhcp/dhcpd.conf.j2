@@ -2,8 +2,8 @@ option routers 192.168.178.1;
 option domain-name "fritz.box";
 option domain-name-servers 192.168.178.34;
 
-default-lease-time 600;
-max-lease-time 7200;
+default-lease-time 86400;
+max-lease-time 604800;
 
 ddns-update-style none;
 
@@ -13,7 +13,13 @@ subnet 192.168.178.0 netmask 255.255.255.0 {
     range 192.168.178.100 192.168.178.199;
 }
 
-# Cisco Switch SG250 Entrance
+# GL.iNet Flint 2 (GL-MT6000) Second bedroom
+host gl-mt6000-2 {
+    hardware ethernet 94:83:c4:cf:20:77;
+    fixed-address 192.168.178.3;
+}
+
+# Cisco Switch SG250 (decom)
 host switch82365e {
     hardware ethernet 7c:31:0e:82:36:5e;
     fixed-address 192.168.178.4;
@@ -25,16 +31,10 @@ host switch82093c {
     fixed-address 192.168.178.5;
 }
 
-# Cisco Switch SG250 Second big bedroom
+# Cisco Switch SG250 (decom)
 host switch823c5b {
     hardware ethernet 7c:31:0e:82:3c:5b;
     fixed-address 192.168.178.6;
-}
-
-# FRITZ!WLAN Repeater 1160
-host repeater {
-    hardware ethernet 9e:9b:cb:80:40:3d;
-    fixed-address 192.168.178.8;
 }
 
 # Toon
@@ -45,13 +45,13 @@ host toon {
 
 # Phin main PC
 host orca {
-    hardware ethernet fc:aa:14:94:81:de;
+    hardware ethernet d8:bb:c1:dd:9e:c1;
     fixed-address 192.168.178.12;
 }
 
 # Dragon main PC
 host dragon {
-    hardware ethernet fc:aa:14:e1:ad:86;
+    hardware ethernet d8:5e:d3:db:5c:42;
     fixed-address 192.168.178.14;
 }
 
@@ -73,15 +73,22 @@ host samsung-tv {
     fixed-address 192.168.178.20;
 }
 
-# iPad
-host ipad {
-    hardware ethernet a4:d1:d2:75:d6:b9;
+# Camera C325WB Front
+host c325wb-front {
+    hardware ethernet 98:25:4a:e5:43:53;
     fixed-address 192.168.178.24;
 }
 
-host pi2-1 {
-    hardware ethernet b8:27:eb:4d:7d:89;
-    fixed-address 192.168.178.30;
+# Camera C325WB Cars
+host c325wb-cars {
+    hardware ethernet 24:2f:d0:30:23:22;
+    fixed-address 192.168.178.25;
+}
+
+# Camera C320WS Front patio
+host c320ws-front-patio {
+    hardware ethernet 9c:a2:f4:82:6c:76;
+    fixed-address 192.168.178.26;
 }
 
 # Tasmota esp8266 connected to the house power meter
@@ -136,28 +143,4 @@ host esp32-ir {
 host esp32-ledstrip {
     hardware ethernet 30:ae:a4:01:ca:70;
     fixed-address 192.168.178.48;
-}
-
-# VM ubuntu-k8s-master
-host ubuntu-k8s-master {
-    hardware ethernet e6:ef:4e:db:ca:28;
-    fixed-address 192.168.178.50;
-}
-
-# VM ubuntu-k8s-node1
-host ubuntu-k8s-node1 {
-    hardware ethernet e6:ef:4e:db:ca:29;
-    fixed-address 192.168.178.51;
-}
-
-# VM ubuntu-k8s-node2
-host ubuntu-k8s-node2 {
-    hardware ethernet e6:ef:4e:db:ca:30;
-    fixed-address 192.168.178.52;
-}
-
-# VM ubuntu-k8s-node3
-host ubuntu-k8s-node3 {
-    hardware ethernet e6:ef:4e:db:ca:31;
-    fixed-address 192.168.178.53;
 }

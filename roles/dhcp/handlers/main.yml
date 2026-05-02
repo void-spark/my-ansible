@@ -1,0 +1,9 @@
+  - name: Restart DHCP server
+    ansible.builtin.systemd_service:
+      name: isc-dhcp-server
+      state: restarted
+
+  - name: Restart DNS server
+    ansible.builtin.systemd_service:
+      name: unbound
+      state: restarted

@@ -1,66 +1,44 @@
-- name: Install resolvconf
-  apt:
-    name: resolvconf
-    state: present
-
-- name: Copy static IP configuration template
-  template:
-    src: "{{ item }}.j2"
-    dest: /etc/network/interfaces.d/{{ item }}
-    owner: root
-    group: root
-    mode: 0644
-  with_items:
-    - static
-
-- name: Install DNS server
-  apt:
-    name: unbound
+- name: Install core networking and DNS packages
+  ansible.builtin.apt:
+    name:
+      - resolvconf
+      - unbound
+      - isc-dhcp-server
     state: present
     update_cache: true
 
-- name: Install DHCP server
-  apt:
-    name: isc-dhcp-server
-    state: present
+- name: Copy static IP configuration template
+  ansible.builtin.template:
+    src: static.j2
+    dest: /etc/network/interfaces.d/static
+    owner: root
+    group: root
+    mode: '0644'
 
-- name: Disable unbound 'helper'
-  service:
+- name: Disable unbound-resolvconf helper
+  ansible.builtin.systemd_service:
     name: unbound-resolvconf
     state: stopped
     enabled: false
 
-- name: Copy DHCP configuration templates
-  template:
-    src: "{{ item }}.j2"
-    dest: /etc/{{ item }}
+- name: Configure DHCP server
+  ansible.builtin.template:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
     owner: root
     group: root
-    mode: 0644
-  with_items:
-    - dhcp/dhcpd.conf
-    - default/isc-dhcp-server
-  register: dhcp_conf
+    mode: '0644'
+  loop:
+    - { src: 'dhcp/dhcpd.conf.j2', dest: '/etc/dhcp/dhcpd.conf' }
+    - { src: 'default/isc-dhcp-server.j2', dest: '/etc/default/isc-dhcp-server' }
+  notify: Restart DHCP server
 
-- name: Copy DNS configuration files
-  copy:
-    src: "{{ item }}"
-    dest: /etc/unbound/{{ item }}
+- name: Configure DNS server (Unbound)
+  ansible.builtin.copy:
+    src: unbound.conf
+    dest: /etc/unbound/unbound.conf
     owner: root
     group: root
-    mode: 0644
-  with_items:
-    - unbound.conf
-  register: unbound_conf
+    mode: '0644'
+  notify: Restart DNS server
 
-- name: Restart DHCP server
-  service:
-    name: isc-dhcp-server
-    state: restarted
-  when: dhcp_conf.changed
-
-- name: Restart DNS server
-  service:
-    name: unbound
-    state: restarted
-  when: unbound_conf.changed

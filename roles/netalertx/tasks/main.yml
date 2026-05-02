@@ -1,5 +1,5 @@
 - name: Make local copy of latest NetAlertX backup
-  synchronize:
+  ansible.posix.synchronize:
     mode: pull
     src: "{{ rsync_backups }}/netalertx.tar.gz"
     dest: backups
@@ -7,45 +7,47 @@
     checksum: true
   delegate_to: localhost
 
-- name: "Restore NetAlertX backup"
-  unarchive:
+- name: Restore NetAlertX backup
+  ansible.builtin.unarchive:
     src: "backups/netalertx.tar.gz"
-    creates: "/var/docker/data/netalertx"
     dest: "/var/docker/data"
+    creates: "/var/docker/data/netalertx"
 
-- name: "Copy NetAlertX compose project"
-  copy:
+- name: Copy NetAlertX compose project
+  ansible.builtin.copy:
     src: netalertx
     dest: /var/docker/compose
+    mode: '0644'
 
 - name: Pull NetAlertX image
-  docker_image:
+  community.docker.docker_image:
     name: ghcr.io/netalertx/netalertx
     source: pull
 
-- name: "Create and start NetAlertX service"
-  docker_compose:
+- name: Create and start NetAlertX service
+  community.docker.docker_compose_v2:
     project_src: /var/docker/compose/netalertx
+    state: present
 
 - name: Create NetAlertX maintenance cron task
-  cron:
+  ansible.builtin.cron:
     name: NetAlertX maintenance
-    minute: "55"
     hour: "4"
+    minute: "55"
     user: root
+    cron_file: netalertx-maint
     job: >
       docker pull ghcr.io/netalertx/netalertx &&
-      pushd /var/docker/compose/netalertx &&
-      /usr/bin/docker-compose down &&
+      cd /var/docker/compose/netalertx &&
+      docker compose down &&
       tar -czf /var/docker/backups/netalertx.tar.gz -C /var/docker/data/ netalertx/ &&
       rsync -av --inplace /var/docker/backups/ "{{ rsync_backups }}/" &&
-      /usr/bin/docker-compose up -d
-    cron_file: netalertx-maint
+      docker compose up -d
 
-- name: "Set shell for NetAlertX maintenance cron task"
-  cron:
+- name: Set shell for NetAlertX maintenance cron task
+  ansible.builtin.cron:
     name: "SHELL"
-    env: yes
-    job: "/usr/bin/bash"
+    env: true
+    job: "/bin/bash"
     user: root
     cron_file: netalertx-maint

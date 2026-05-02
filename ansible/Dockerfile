@@ -19,6 +19,8 @@ RUN apt update \
     wget \
 && rm -rf /var/lib/apt/lists/*
 
+RUN ansible-galaxy collection install 'community.docker:<5.0.0' --upgrade -p /usr/lib/python3/dist-packages/ansible_collections
+
 COPY docker-entrypoint.sh /usr/local/bin/
 RUN ln -s /usr/local/bin/docker-entrypoint.sh / # backwards compat
 ENTRYPOINT ["docker-entrypoint.sh"]

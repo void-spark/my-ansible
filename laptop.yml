@@ -1,4 +1,4 @@
-# Invocation: ansible-playbook -i hosts.docker laptop.yml
+# Invocation: ansible-playbook -i hosts.docker laptop.yml (--check --diff)
 - name: Build laptop server
   hosts: debian.fritz.box
   vars_files:

@@ -1,40 +1,19 @@
 # Install docker/docker compose, and create some useful folders
-- name: Install Docker
-  apt:
-    name: docker.io
+- name: Install Docker and Compose
+  ansible.builtin.apt:
+    name:
+      - docker.io
+      - docker-compose
+      - python3-docker
+    state: present
     update_cache: true
 
-- name: Install Docker Compose
-  apt:
-    name: docker-compose
-
-- name: Install python
-  apt:
-    name: python3
-
-- name: Install pip
-  apt:
-    name: python3-pip
-
-- name: Install Docker Module for Python
-  apt:
-    name: python3-docker
-
-- name: Install Docker Compose Module for Python
-  apt:
-    name: python3-compose
-
-- name: "Create folder to keep Docker bind mounts at"
-  file:
-    path: "/var/docker/data"
+- name: Create Docker directories
+  ansible.builtin.file:
+    path: "{{ item }}"
     state: directory
-
-- name: "Create folder to keep Docker compose files at"
-  file:
-    path: "/var/docker/compose"
-    state: directory
-
-- name: "Create folder to keep Docker backups at"
-  file:
-    path: "/var/docker/backups"
-    state: directory
+    mode: '0755'
+  loop:
+    - "/var/docker/data"
+    - "/var/docker/compose"
+    - "/var/docker/backups"

@@ -1,9 +1,14 @@
   - name: Restart DHCP server
     ansible.builtin.systemd_service:
-      name: isc-dhcp-server
+      name: kea-dhcp4-server
       state: restarted
 
   - name: Restart DNS server
     ansible.builtin.systemd_service:
       name: unbound
+      state: restarted
+
+  - name: Restart Kea Control Agent
+    ansible.builtin.systemd_service:
+      name: kea-ctrl-agent
       state: restarted

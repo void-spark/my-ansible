@@ -3,7 +3,8 @@
     name:
       - resolvconf
       - unbound
-      - isc-dhcp-server
+      - kea-dhcp4-server
+      - kea-ctrl-agent
       - bind9-dnsutils
     state: present
     update_cache: true
@@ -22,17 +23,23 @@
     state: stopped
     enabled: false
 
-- name: Configure DHCP server
-  ansible.builtin.template:
-    src: "{{ item.src }}"
-    dest: "{{ item.dest }}"
+- name: Configure DHCP server (Kea)
+  ansible.builtin.copy:
+    src: kea-dhcp4.conf
+    dest: /etc/kea/kea-dhcp4.conf
     owner: root
     group: root
     mode: '0644'
-  loop:
-    - { src: 'dhcp/dhcpd.conf.j2', dest: '/etc/dhcp/dhcpd.conf' }
-    - { src: 'default/isc-dhcp-server.j2', dest: '/etc/default/isc-dhcp-server' }
   notify: Restart DHCP server
+
+- name: Configure Kea Control Agent
+  ansible.builtin.copy:
+    src: kea-ctrl-agent.conf
+    dest: /etc/kea/kea-ctrl-agent.conf
+    owner: root
+    group: root
+    mode: '0644'
+  notify: Restart Kea Control Agent
 
 - name: Configure DNS server (Unbound)
   ansible.builtin.copy:

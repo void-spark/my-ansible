@@ -1,7 +1,6 @@
 - name: Install core networking and DNS packages
   ansible.builtin.apt:
     name:
-      - resolvconf
       - unbound
       - kea-dhcp4-server
       - kea-ctrl-agent
@@ -9,19 +8,45 @@
     state: present
     update_cache: true
 
-- name: Copy static IP configuration template
-  ansible.builtin.template:
-    src: static.j2
-    dest: /etc/network/interfaces.d/static
-    owner: root
-    group: root
-    mode: '0644'
-
 - name: Disable unbound-resolvconf helper
   ansible.builtin.systemd_service:
     name: unbound-resolvconf
     state: stopped
     enabled: false
+
+- name: Force local system to resolve DNS queries through Unbound
+  ansible.builtin.copy:
+    src: resolv.conf
+    dest: /etc/resolv.conf
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: Configure static IP
+  ansible.builtin.copy:
+    src: 10-static.network
+    dest: /etc/systemd/network/10-static.network
+    owner: root
+    group: root
+    mode: '0644'
+  notify: Restart systemd-networkd
+
+- name: Ensure systemd-networkd and wait-online are enabled and running
+  ansible.builtin.systemd_service:
+    name: "{{ item }}"
+    enabled: true
+    state: started
+  loop:
+    - systemd-networkd.service
+    - systemd-networkd-wait-online.service
+
+- name: Create systemd override directories for Kea
+  ansible.builtin.file:
+    path: /etc/systemd/system/kea-dhcp4-server.service.d
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
 
 - name: Configure DHCP server (Kea)
   ansible.builtin.copy:
@@ -49,6 +74,20 @@
     group: root
     mode: '0644'
   notify: Restart DNS server
+
+- name: Configure Kea to wait for network-online target
+  ansible.builtin.copy:
+    dest: /etc/systemd/system/kea-dhcp4-server.service.d/override.conf
+    owner: root
+    group: root
+    mode: '0644'
+    content: |
+      [Unit]
+      Requires=systemd-networkd-wait-online.service
+      After=systemd-networkd-wait-online.service
+  notify: 
+    - Reload systemd daemon
+    - Restart DHCP server
 
 - name: Ensure network services are enabled and running
   ansible.builtin.systemd_service:

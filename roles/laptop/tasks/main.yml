@@ -20,7 +20,7 @@
 
 - name: Install desktop
   apt:
-    name: xfce4
+    name: task-kde-desktop
 
 - name: Enable remote desktop
   apt:
@@ -50,3 +50,11 @@
     user: root
     job: /root/hd-stats.sh
     cron_file: hd-stats
+
+- name: Force Master and PCM volume to 100 percent every 15 minutes via cron
+  ansible.builtin.cron:
+    name: "Force all audio volumes to max"
+    minute: "*/15"
+    job: "/usr/bin/amixer -q set Master 100% && /usr/bin/amixer -q set PCM 100%"
+    user: root
+    state: present

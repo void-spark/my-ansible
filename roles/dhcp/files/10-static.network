@@ -1,0 +1,8 @@
+[Match]
+Name=eno1
+
+[Network]
+Address=192.168.178.34/24
+Gateway=192.168.178.1
+DNS=192.168.178.34
+Domains=fritz.box
